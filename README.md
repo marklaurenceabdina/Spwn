@@ -1,7 +1,7 @@
 
-  # Translucent button with shadow
+  # Spwn App
 
-  This is a code bundle for Translucent button with shadow. The original project is available at https://www.figma.com/design/B1HW0rzPFtkvtTlxeBJIXE/Translucent-button-with-shadow.
+  This is the Spwn App code bundle. The original project is available at https://www.figma.com/design/B1HW0rzPFtkvtTlxeBJIXE/Translucent-button-with-shadow.
 
   ## Running the code
 

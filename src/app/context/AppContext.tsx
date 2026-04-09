@@ -60,7 +60,7 @@ function loadFromStorage<T>(key: string, fallback: T): T {
 function saveToStorage(key: string, value: unknown) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
-  } catch {}
+  } catch { }
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {

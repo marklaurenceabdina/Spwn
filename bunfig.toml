@@ -1,0 +1,6 @@
+[install]
+# Use npm-style lock file
+lockfile = "package-lock.json"
+
+[test]
+root = "."

@@ -191,7 +191,7 @@ export function ProfilePage() {
           style={{
             background: "rgba(0,0,0,0.5)",
             backdropFilter: "blur(8px)",
-            border: "1px solid rgba(255,255,255,0.18)",
+            border: "1px solid rgba(235, 13, 13, 0.18)",
             fontWeight: 600,
           }}
         >
@@ -202,12 +202,13 @@ export function ProfilePage() {
         {/* Change cover button */}
         <button
           onClick={cover.trigger}
-          className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-white"
+          className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs"
           style={{
             background: "rgba(0,0,0,0.5)",
             backdropFilter: "blur(8px)",
             border: "1px solid rgba(255,255,255,0.18)",
             fontWeight: 600,
+            color: "var(--spwn-text)",
           }}
         >
           <Camera size={12} />

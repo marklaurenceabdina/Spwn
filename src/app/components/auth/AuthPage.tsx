@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useApp } from "../../context/AppContext";
-import spwnLogo from "figma:asset/862a555786bebc44e5002344c87af57ac09ecffb.png";
+import spwnLogo from "@/assets/spwn-logo.png";
 
 type View = "login" | "signup";
 
@@ -67,19 +67,19 @@ function GlassButton({
       style={
         variant === "primary"
           ? {
-              background: ACCENT,
-              fontWeight: 700,
-              boxShadow: pressed
-                ? `0 2px 8px rgba(0,170,255,0.3)`
-                : `0 4px 16px rgba(0,170,255,0.35), 0 8px 24px rgba(0,170,255,0.15), inset 0 1px 0 rgba(255,255,255,0.2)`,
-              transform: pressed ? "scale(0.98) translateY(1px)" : "scale(1)",
-            }
+            background: ACCENT,
+            fontWeight: 700,
+            boxShadow: pressed
+              ? `0 2px 8px rgba(0,170,255,0.3)`
+              : `0 4px 16px rgba(0,170,255,0.35), 0 8px 24px rgba(0,170,255,0.15), inset 0 1px 0 rgba(255,255,255,0.2)`,
+            transform: pressed ? "scale(0.98) translateY(1px)" : "scale(1)",
+          }
           : {
-              background: "rgba(255,255,255,0.06)",
-              border: `1px solid rgba(255,255,255,0.15)`,
-              fontWeight: 600,
-              transform: pressed ? "scale(0.98)" : "scale(1)",
-            }
+            background: "rgba(255,255,255,0.06)",
+            border: `1px solid rgba(255,255,255,0.15)`,
+            fontWeight: 600,
+            transform: pressed ? "scale(0.98)" : "scale(1)",
+          }
       }
     >
       {children}

@@ -37,8 +37,8 @@ function GameGridCard({ game, onNavigate, wishlisted, onToggleWishlist }: { game
         </button>
       </div>
       <div className="p-2.5">
-        <p className="text-white text-xs truncate" style={{ fontWeight: 600 }}>{game.title}</p>
-        <p className="text-white/35 text-xs mt-0.5 truncate">{game.year} • {game.genres[0]}</p>
+        <p className="text-xs truncate" style={{ fontWeight: 600, color: "var(--spwn-text)" }}>{game.title}</p>
+        <p className="text-xs mt-0.5" style={{ color: "var(--spwn-faint)" }}>{game.year} • {game.genres[0]}</p>
       </div>
     </div>
   );
@@ -53,9 +53,9 @@ function GameListCard({ game, onNavigate, wishlisted, onToggleWishlist }: { game
     >
       <img src={game.image} alt={game.title} className="w-14 h-14 rounded-lg object-cover shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-white text-sm truncate" style={{ fontWeight: 600 }}>{game.title}</p>
-        <p className="text-white/40 text-xs mt-0.5">{game.year} • {game.developer}</p>
-        <p className="text-white/25 text-xs mt-0.5 truncate">{game.genres.join(" • ")}</p>
+        <p className="text-sm truncate" style={{ fontWeight: 600, color: "var(--spwn-text)" }}>{game.title}</p>
+        <p className="text-xs mt-0.5" style={{ color: "var(--spwn-faint)" }}>{game.year} • {game.developer}</p>
+        <p className="text-xs mt-0.5 truncate" style={{ color: "var(--spwn-fainter)" }}>{game.genres.join(" • ")}</p>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <div className="flex items-center gap-1 px-2 py-1 rounded text-xs" style={{ background: "rgba(0,0,0,0.5)", fontWeight: 700 }}>

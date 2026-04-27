@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useLocation } from "react-router";
 import { useApp } from "../../context/AppContext";
-import spwnLogo from "figma:asset/862a555786bebc44e5002344c87af57ac09ecffb.png";
+import spwnLogo from "@/assets/spwn-logo.png";
 import { Home, Compass, Gamepad2, Users, Search, UserCircle } from "lucide-react";
 
 const navItems = [
@@ -25,8 +25,8 @@ export function MobileLayout() {
         style={{ borderColor: "var(--spwn-border)", background: "var(--spwn-nav)" }}
       >
         <button onClick={() => navigate("/app")} className="flex items-center gap-2">
-          <img src={spwnLogo} alt="SPWN" className="w-6 h-6 object-contain" />
-          <span className="text-sm" style={{ color: "var(--spwn-text)", fontWeight: 800, letterSpacing: "0.06em" }}>
+          <img src={spwnLogo} alt="SPWN" className="w-16 h-16 object-contain" />
+          <span className="text-lg" style={{ color: "var(--spwn-text)", fontWeight: 800, letterSpacing: "0.06em" }}>
             SPWN
           </span>
         </button>

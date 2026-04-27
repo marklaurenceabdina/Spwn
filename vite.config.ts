@@ -11,13 +11,21 @@ export default defineConfig({
     tailwindcss(),
     {
       name: 'figma-asset-resolver',
+
       resolveId(id) {
         if (id.startsWith('figma:asset/')) {
           const assetName = id.replace('figma:asset/', '');
           return path.resolve(__dirname, 'src/assets', assetName);
         }
       },
-    },
+
+      load(id) {
+        // ensure resolved assets are treated as normal files
+        if (id.includes('/src/assets/')) {
+          return null; // let Vite handle it as a normal asset
+        }
+      },
+    }
   ],
   resolve: {
     alias: {

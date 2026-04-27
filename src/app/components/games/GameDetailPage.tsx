@@ -209,7 +209,7 @@ function ReviewCard({
 
 // ── Backlog Button ────────────────────────────────────────────────────────
 function BacklogButton({ gameId }: { gameId: string }) {
-  const { user, addToBacklog, removeFromBacklog, getBacklogStatus, isInBacklog } = useApp();
+  const { user, addToBacklog, removeFromBacklog, getBacklogStatus, isInBacklog, darkMode } = useApp();
   const [showPicker, setShowPicker] = useState(false);
   const status = getBacklogStatus(gameId);
   const inBacklog = isInBacklog(gameId);
@@ -230,14 +230,14 @@ function BacklogButton({ gameId }: { gameId: string }) {
         onClick={() => setShowPicker(!showPicker)}
         className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full transition-all"
         style={{
-          background: inBacklog ? `${activeOption?.color}30` : "rgba(0,0,0,0.55)",
+          background: inBacklog ? `${activeOption?.color}30` : darkMode ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.7)",
           backdropFilter: "blur(8px)",
-          border: `1px solid ${inBacklog ? activeOption?.color + "80" : "rgba(255,255,255,0.15)"}`,
+          border: `1px solid ${inBacklog ? activeOption?.color + "80" : darkMode ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)"}`,
         }}
       >
         {inBacklog && activeOption
           ? <activeOption.icon size={15} style={{ color: activeOption.color }} />
-          : <BookmarkPlus size={16} color="white" />
+          : <BookmarkPlus size={16} color={darkMode ? "white" : "#0d1117"} />
         }
       </button>
 
@@ -297,6 +297,7 @@ export function GameDetailPage() {
     editReview,
     getUserRating,
     setUserRating,
+    darkMode,
   } = useApp();
 
   const game = GAMES.find((g) => g.id === id);
@@ -340,14 +341,16 @@ export function GameDetailPage() {
       {/* Hero */}
       <div className="relative shrink-0" style={{ height: 220 }}>
         <img src={game.image} alt={game.title} className="w-full h-full object-cover" />
-        <div
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 60%, var(--spwn-bg) 100%)" }}
-        />
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-3 left-3 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs text-white"
-          style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.15)", fontWeight: 600 }}
+          className="absolute top-3 left-3 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs"
+          style={{ 
+            color: darkMode ? "white" : "#0d1117",
+            background: darkMode ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.7)", 
+            backdropFilter: "blur(8px)", 
+            border: darkMode ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.15)", 
+            fontWeight: 600 
+          }}
         >
           <ChevronLeft size={14} />
           Back
@@ -358,16 +361,22 @@ export function GameDetailPage() {
 
         <button
           onClick={() => setShowTrailer(true)}
-          className="absolute bottom-5 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full text-white text-xs"
-          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.2)", fontWeight: 600 }}
+          className="absolute bottom-5 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs"
+          style={{ 
+            color: darkMode ? "white" : "#0d1117",
+            background: darkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.8)", 
+            backdropFilter: "blur(8px)", 
+            border: darkMode ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(0,0,0,0.15)", 
+            fontWeight: 600 
+          }}
         >
-          <Play size={11} fill="white" stroke="none" />
+          <Play size={11} fill={darkMode ? "white" : "#0d1117"} stroke="none" />
           Watch Trailer
         </button>
       </div>
 
       {/* Title block */}
-      <div className="px-4 -mt-2 pb-4">
+      <div className="px-4 pt-2 pb-4">
         <div className="flex flex-wrap gap-1.5 mb-2">
           {game.genres.map((g) => (
             <span

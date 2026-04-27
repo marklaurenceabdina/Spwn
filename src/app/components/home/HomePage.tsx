@@ -66,17 +66,16 @@ export function HomePage() {
         onClick={() => navigate(`/app/game/${featured.id}`)}
       >
         <img src={featured.image} alt={featured.title} className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(8,8,15,0.93) 40%, rgba(8,8,15,0.25) 100%)" }} />
         <div className="absolute inset-0 p-4 flex flex-col justify-center">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-white text-xs px-2 py-0.5 rounded" style={{ background: "var(--spwn-accent)", fontWeight: 700, fontSize: 10 }}>FEATURED</span>
-            <span className="text-white/60 text-xs">{featured.genres.slice(0, 2).join(" • ")}</span>
+            <span className="text-xs px-2 py-0.5 rounded overlay-white" style={{ background: "var(--spwn-accent)", fontWeight: 700, fontSize: 10 }}>FEATURED</span>
+            <span className="text-xs overlay-white-secondary">{featured.genres.slice(0, 2).join(" • ")}</span>
           </div>
-          <h2 className="text-white text-xl leading-tight mb-2" style={{ fontWeight: 800, maxWidth: 210 }}>{featured.title}</h2>
-          <p className="text-white/55 text-xs leading-relaxed mb-4" style={{ maxWidth: 200 }}>{featured.description.slice(0, 90)}…</p>
+          <h2 className="text-xl leading-tight mb-2 overlay-white" style={{ fontWeight: 800, maxWidth: 210 }}>{featured.title}</h2>
+          <p className="text-xs leading-relaxed mb-4 overlay-white-muted" style={{ maxWidth: 200 }}>{featured.description.slice(0, 90)}…</p>
           <div className="flex items-center gap-2">
             <button
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-white text-xs"
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs overlay-white"
               style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)", fontWeight: 600, backdropFilter: "blur(8px)" }}
             >
               <Play size={11} fill="white" stroke="none" />
@@ -137,14 +136,14 @@ export function HomePage() {
               style={{ width: 140, background: "var(--spwn-card)", border: "1px solid var(--spwn-border)" }}
             >
               <img src={game.image} alt={game.title} className="w-full h-24 object-cover" />
-              <div className="absolute top-2 left-2 w-5 h-5 rounded-full flex items-center justify-center text-white"
+              <div className="absolute top-2 left-2 w-5 h-5 rounded-full flex items-center justify-center overlay-white"
                 style={{ background: ["#f59e0b", "#94a3b8", "#cd7c2f"][i], fontSize: 10, fontWeight: 800 }}>
                 {i + 1}
               </div>
               <div className="absolute top-2 right-2"><StarsBadge rating={game.rating} /></div>
               <div className="p-2.5">
-                <p className="text-white text-xs truncate" style={{ fontWeight: 600 }}>{game.title}</p>
-                <p className="text-white/35 text-xs mt-0.5">{game.developer}</p>
+                <p className="text-xs truncate overlay-white" style={{ fontWeight: 600 }}>{game.title}</p>
+                <p className="text-xs mt-0.5 overlay-white-secondary">{game.developer}</p>
               </div>
             </div>
           ))}

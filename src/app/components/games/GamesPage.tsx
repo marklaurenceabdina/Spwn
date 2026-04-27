@@ -135,12 +135,11 @@ export function GamesPage() {
                 className="rounded-xl overflow-hidden relative cursor-pointer active:scale-[0.98] transition-all"
                 style={{ height: 100, background: "var(--spwn-card)", border: "1px solid var(--spwn-border)" }}
               >
-                <img src={game.image} alt={game.title} className="absolute inset-0 w-full h-full object-cover opacity-35" />
-                <div className="absolute inset-0 p-3 flex items-end"
-                  style={{ background: "linear-gradient(to top, rgba(8,8,15,0.97) 30%, rgba(8,8,15,0.4) 100%)" }}>
+                <img src={game.image} alt={game.title} className="absolute inset-0 w-full h-full object-cover" />
+                <div className="absolute inset-0 p-3 flex items-end">
                   <div className="flex-1">
-                    <p className="text-white text-sm" style={{ fontWeight: 700 }}>{game.title}</p>
-                    <p className="text-xs" style={{ color: "var(--spwn-faint)" }}>{game.year} • {game.developer}</p>
+                    <p className="text-sm overlay-white" style={{ fontWeight: 700 }}>{game.title}</p>
+                    <p className="text-xs overlay-white-secondary">{game.year} • {game.developer}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 px-2 py-1 rounded-lg" style={{ background: "rgba(0,0,0,0.6)" }}>

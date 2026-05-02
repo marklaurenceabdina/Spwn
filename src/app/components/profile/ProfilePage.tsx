@@ -4,8 +4,6 @@ import { useApp } from "../../context/AppContext";
 import {
   ChevronLeft,
   LogOut,
-  Moon,
-  Sun,
   Heart,
   Star,
   Shield,
@@ -116,7 +114,7 @@ function useImageUpload(initial: string | null = null) {
 
 export function ProfilePage() {
   const navigate = useNavigate();
-  const { user, darkMode, toggleDarkMode, logout, backlog, reviews } = useApp();
+  const { user, logout, backlog, reviews } = useApp();
   const [notifications, setNotifications] = useState(true);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
 
@@ -288,35 +286,6 @@ export function ProfilePage() {
         </div>
       </div>
 
-      {/* ── Appearance ── */}
-      <div className="px-4 mb-3">
-        <p className="text-xs tracking-widest uppercase mb-2 px-1" style={{ color: "var(--spwn-faint)", fontWeight: 700 }}>
-          Appearance
-        </p>
-        <div className="rounded-xl overflow-hidden" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-          <div className="flex items-center gap-3 px-4 py-3.5">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: "var(--spwn-glass)", border: `1px solid ${BORDER}` }}
-            >
-              {darkMode ? (
-                <Moon size={15} style={{ color: "var(--spwn-accent)" }} />
-              ) : (
-                <Sun size={15} style={{ color: "#f59e0b" }} />
-              )}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm" style={{ color: "var(--spwn-text)", fontWeight: 600 }}>
-                {darkMode ? "Dark Mode" : "Light Mode"}
-              </p>
-              <p className="text-xs" style={{ color: "var(--spwn-faint)" }}>
-                {darkMode ? "Gaming dark aesthetic" : "Bright & clean"}
-              </p>
-            </div>
-            <Toggle value={darkMode} onToggle={toggleDarkMode} />
-          </div>
-        </div>
-      </div>
 
       {/* ── Preferences ── */}
       <div className="px-4 mb-3">

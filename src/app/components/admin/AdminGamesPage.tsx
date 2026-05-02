@@ -182,6 +182,8 @@ function GameEditForm({
   const [rating, setRating] = useState(game.rating.toString());
   const [year, setYear] = useState(game.year.toString());
   const [description, setDescription] = useState(game.description);
+  const [image, setImage] = useState(game.image || "");
+  const [tags, setTags] = useState((game.tags || []).join(", "));
 
   return (
     <div className="px-3 pb-3 border-t" style={{ borderColor: "var(--spwn-border)" }}>
@@ -238,6 +240,30 @@ function GameEditForm({
           }}
           placeholder="Description"
         />
+        <input
+          type="text"
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+          className="w-full px-2 py-1 rounded text-sm outline-none"
+          style={{
+            background: "var(--spwn-input)",
+            border: "1px solid var(--spwn-border)",
+            color: "var(--spwn-text)",
+          }}
+          placeholder="Overview Image URL"
+        />
+        <input
+          type="text"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          className="w-full px-2 py-1 rounded text-sm outline-none"
+          style={{
+            background: "var(--spwn-input)",
+            border: "1px solid var(--spwn-border)",
+            color: "var(--spwn-text)",
+          }}
+          placeholder="Tags (comma separated)"
+        />
         <div className="flex gap-2 pt-2">
           <button
             onClick={() => {
@@ -246,6 +272,8 @@ function GameEditForm({
                 year: parseInt(year),
                 rating: parseFloat(rating),
                 description,
+                image,
+                tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
               });
             }}
             className="flex-1 px-3 py-2 rounded text-sm text-white"
@@ -307,13 +335,18 @@ function GameCreateForm({
     trailerVideoId: "",
     popularity: 50,
   });
+  const [tagsString, setTagsString] = useState((formData.tags || []).join(", "));
 
   const handleSubmit = () => {
     if (!formData.title || !formData.developer) {
       alert("Please fill in title and developer");
       return;
     }
-    onSave(formData);
+    const payload = {
+      ...formData,
+      tags: tagsString.split(",").map((t) => t.trim()).filter(Boolean),
+    } as Omit<Game, "id">;
+    onSave(payload);
   };
 
   return (
@@ -410,6 +443,30 @@ function GameCreateForm({
               border: "1px solid var(--spwn-border)",
               color: "var(--spwn-text)",
               minHeight: "80px",
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Overview Image URL"
+            value={formData.image}
+            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+            className="w-full px-3 py-2 rounded text-sm outline-none"
+            style={{
+              background: "var(--spwn-input)",
+              border: "1px solid var(--spwn-border)",
+              color: "var(--spwn-text)",
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Tags (comma separated)"
+            value={tagsString}
+            onChange={(e) => setTagsString(e.target.value)}
+            className="w-full px-3 py-2 rounded text-sm outline-none"
+            style={{
+              background: "var(--spwn-input)",
+              border: "1px solid var(--spwn-border)",
+              color: "var(--spwn-text)",
             }}
           />
           <div className="flex gap-2 pt-2">

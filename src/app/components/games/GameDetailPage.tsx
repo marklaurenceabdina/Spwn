@@ -358,9 +358,9 @@ export function GameDetailPage() {
     setReviewRating(0);
   };
 
-  const avgRating = reviews.length
-    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
-    : game.rating.toFixed(1);
+  const avgRatingNum = reviews.length
+    ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+    : game.rating / 2;
 
   const tabs: Tab[] = ["overview", "specs", "reviews"];
 
@@ -429,13 +429,13 @@ export function GameDetailPage() {
         <div className="flex items-center gap-3 mt-2.5">
           <div className="flex items-center gap-1.5">
             <Star size={16} fill="#f59e0b" stroke="none" />
-            <span className="text-xl" style={{ color: "var(--spwn-text)", fontWeight: 800 }}>{(Number(avgRating) / 2).toFixed(1)}</span>
+            <span className="text-xl" style={{ color: "var(--spwn-text)", fontWeight: 800 }}>{avgRatingNum.toFixed(1)}</span>
           </div>
           <div>
             <p className="text-xs" style={{ color: "var(--spwn-faint)" }}>
               {reviews.length.toLocaleString()} {reviews.length === 1 ? "review" : "reviews"}
             </p>
-            <StarRating value={Number(avgRating) / 2} size={11} readonly />
+            <StarRating value={avgRatingNum} size={11} readonly />
           </div>
           {user && (
             <div className="ml-auto flex flex-col items-end">
@@ -556,8 +556,8 @@ export function GameDetailPage() {
             {/* Rating summary */}
             <div className="rounded-xl p-4 flex items-center gap-4" style={{ background: "var(--spwn-card)", border: "1px solid var(--spwn-border)" }}>
               <div className="text-center">
-                <p className="text-4xl" style={{ color: "var(--spwn-text)", fontWeight: 800 }}>{(Number(avgRating) / 2).toFixed(1)}</p>
-                <StarRating value={Number(avgRating) / 2} size={12} readonly />
+                <p className="text-4xl" style={{ color: "var(--spwn-text)", fontWeight: 800 }}>{avgRatingNum.toFixed(1)}</p>
+                <StarRating value={avgRatingNum} size={12} readonly />
                 <p className="text-xs mt-1" style={{ color: "var(--spwn-fainter)" }}>
                   {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
                 </p>

@@ -43,66 +43,70 @@ interface Post {
   comments: Comment[];
 }
 
-// ── Seed Data ──────────────────────────────────────────────────────────────
-const topContributors = [
-  { rank: 1, initials: "RM", avatarColor: "#dc2626", username: "RPG_Master", points: 142 },
-  { rank: 2, initials: "LH", avatarColor: "#059669", username: "LoreHunter", points: 98 },
-  { rank: 3, initials: "AG", avatarColor: "#7c3aed", username: "AlexGamer99", points: 76 },
+// ── Derived Data Helpers ───────────────────────────────────────────────────
+const COLOR_PALETTE = [
+  "#dc2626",
+  "#059669",
+  "#7c3aed",
+  "#8b5cf6",
+  "#0891b2",
+  "#b45309",
+  "#ff7a18",
+  "#ff6363",
+  "#00aaff",
+  "#7f5af0",
 ];
 
-const SEED_POSTS: Post[] = [
-  {
-    id: "p1",
-    avatar: "V",
-    avatarColor: "#8b5cf6",
-    username: "VergilFan99",
-    time: "2 hours ago",
-    gameId: null,
-    gameTag: "General",
-    gameTagColor: "#0891b2",
-    title: "Finally pulled off the Judgement Cut End combo!",
-    body: "After hours of practicing in the void, I finally managed to string together four consecutive Judgement Cut Ends. The combat system in this game is an absolute masterpiece.",
-    likes: 245,
-    comments: [
-      { id: "c1a", username: "RPG_Master", avatar: "R", avatarColor: "#dc2626", text: "Insane! That move takes forever to master. Congrats!", time: "1 hour ago" },
-      { id: "c1b", username: "LoreHunter", avatar: "L", avatarColor: "#059669", text: "DMC5 combat is truly peak gaming. Which style were you using?", time: "45 min ago" },
-    ],
-  },
-  {
-    id: "p2",
-    avatar: "R",
-    avatarColor: "#dc2626",
-    username: "RogueKnight",
-    time: "5 hours ago",
-    gameId: null,
-    gameTag: "General",
-    gameTagColor: "#0891b2",
-    title: "The Radiance fight is breathtaking",
-    body: "Just defeated the Radiance for the first time after 47 attempts. The way the entire fight is designed feels like poetry. Team Cherry really outdid themselves.",
-    likes: 189,
-    comments: [
-      { id: "c2a", username: "AlexGamer99", avatar: "A", avatarColor: "#7c3aed", text: "47 attempts is nothing — wait until you try Pantheon of Hallownest!", time: "4 hours ago" },
-    ],
-  },
-  {
-    id: "p3",
-    avatar: "L",
-    avatarColor: "#059669",
-    username: "LoreHunter",
-    time: "8 hours ago",
-    gameId: "elden-ring",
-    gameTag: "Elden Ring",
-    gameTagColor: "#b45309",
-    title: "Found a hidden questline most players miss",
-    body: "Deep in the Siofra River area there's an NPC that starts one of the most lore-rich questlines in the game. I'm shocked more people don't talk about this.",
-    likes: 412,
-    comments: [
-      { id: "c3a", username: "RPG_Master", avatar: "R", avatarColor: "#dc2626", text: "Are you talking about Ranni's questline? That one is incredible.", time: "7 hours ago" },
-      { id: "c3b", username: "VergilFan99", avatar: "V", avatarColor: "#8b5cf6", text: "FromSoft always hides the best content in unexpected places.", time: "6 hours ago" },
-      { id: "c3c", username: "AlexGamer99", avatar: "A", avatarColor: "#7c3aed", text: "I need to revisit this area. Thanks for the heads up!", time: "5 hours ago" },
-    ],
-  },
-];
+function pickColorForName(name: string) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) {
+    h = (h << 5) - h + name.charCodeAt(i);
+    h |= 0;
+  }
+  return COLOR_PALETTE[Math.abs(h) % COLOR_PALETTE.length];
+}
+
+function relativeTimeFromDate(dateStr?: string) {
+  if (!dateStr) return "Just now";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  const diff = Date.now() - d.getTime();
+  const sec = Math.floor(diff / 1000);
+  const min = Math.floor(sec / 60);
+  const hr = Math.floor(min / 60);
+  const day = Math.floor(hr / 24);
+  if (day >= 7) return d.toLocaleDateString();
+  if (day >= 1) return `${day}d ago`;
+  if (hr >= 1) return `${hr}h ago`;
+  if (min >= 1) return `${min}m ago`;
+  return "Just now";
+}
+
+function mapReviewsToPosts(reviews: any[], games: any[]): Post[] {
+  const byDate = [...reviews].sort((a, b) => {
+    const da = new Date(a.date).getTime() || 0;
+    const db = new Date(b.date).getTime() || 0;
+    return db - da;
+  });
+
+  return byDate.map((r) => {
+    const game = games.find((g) => g.id === r.gameId);
+    return {
+      id: `post_${r.id}`,
+      avatar: r.username?.charAt(0)?.toUpperCase() || "?",
+      avatarColor: pickColorForName(r.username || ""),
+      username: r.username || "Unknown",
+      time: relativeTimeFromDate(r.date),
+      gameId: r.gameId ?? null,
+      gameTag: game ? game.title : "General",
+      gameTagColor: game ? pickColorForName(game.id) : "#0891b2",
+      title: r.text && r.text.length > 0 ? r.text.slice(0, 80) : `Review of ${game?.title || "a game"}`,
+      body: r.text || "",
+      likes: r.helpful ?? 0,
+      comments: [],
+    } as Post;
+  });
+}
 
 // ── Game Tag Picker ────────────────────────────────────────────────────────
 function GameTagPicker({
@@ -490,8 +494,28 @@ export function CommunityPage() {
   const { user, reviews, games, getGameById } = useApp();
   const [postSubject, setPostSubject] = useState("");
   const [postText, setPostText] = useState("");
-  const [posts, setPosts] = useState<Post[]>(SEED_POSTS);
+  const [posts, setPosts] = useState<Post[]>(() => mapReviewsToPosts(reviews, games));
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
+
+  const topContributors = useMemo(() => {
+    const agg: Record<string, { username: string; points: number; reviews: number }> = {};
+    reviews.forEach((r: any) => {
+      const name = r.username || "Unknown";
+      if (!agg[name]) agg[name] = { username: name, points: 0, reviews: 0 };
+      agg[name].reviews += 1;
+      agg[name].points += r.helpful ?? 0;
+    });
+
+    const arr = Object.values(agg).sort((a, b) => (b.points - a.points) || (b.reviews - a.reviews));
+
+    return arr.slice(0, 5).map((c, i) => ({
+      rank: i + 1,
+      initials: c.username.slice(0, 2).toUpperCase(),
+      avatarColor: pickColorForName(c.username),
+      username: c.username,
+      points: c.points || c.reviews * 10,
+    }));
+  }, [reviews]);
   const [showGamePicker, setShowGamePicker] = useState(false);
   const [selectedGame, setSelectedGame] = useState<{ id: string; title: string } | null>(null);
   const [activeCommentPost, setActiveCommentPost] = useState<Post | null>(null);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useApp } from "../../context/AppContext";
+import { validateLoginForm, validateSignupForm } from "../../utils/validation";
 import spwnLogo from "@/assets/spwn-logo.png";
 
 type View = "login" | "signup";
@@ -15,12 +16,14 @@ function SpwnInput({
   placeholder,
   value,
   onChange,
+  disabled = false,
 }: {
   label: string;
   type: string;
   placeholder: string;
   value: string;
   onChange: (v: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -32,13 +35,14 @@ function SpwnInput({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-3 rounded-lg text-white text-sm placeholder-white/25 outline-none transition-all duration-200"
+        disabled={disabled}
+        className="w-full px-4 py-3 rounded-lg text-white text-sm placeholder-white/25 outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         style={{
           background: "#141425",
           border: `1px solid ${BORDER}`,
           boxShadow: "inset 0 1px 4px rgba(0,0,0,0.3)",
         }}
-        onFocus={(e) => (e.target.style.borderColor = "rgba(0,170,255,0.5)")}
+        onFocus={(e) => !disabled && (e.target.style.borderColor = "rgba(0,170,255,0.5)")}
         onBlur={(e) => (e.target.style.borderColor = BORDER)}
       />
     </div>
@@ -49,21 +53,24 @@ function GlassButton({
   onClick,
   children,
   variant = "primary",
+  disabled = false,
 }: {
   onClick?: () => void;
   children: React.ReactNode;
   variant?: "primary" | "outline";
+  disabled?: boolean;
 }) {
   const [pressed, setPressed] = useState(false);
   return (
     <button
       onClick={onClick}
-      onMouseDown={() => setPressed(true)}
+      disabled={disabled}
+      onMouseDown={() => !disabled && setPressed(true)}
       onMouseUp={() => setPressed(false)}
       onMouseLeave={() => setPressed(false)}
-      onTouchStart={() => setPressed(true)}
+      onTouchStart={() => !disabled && setPressed(true)}
       onTouchEnd={() => setPressed(false)}
-      className="w-full py-3.5 rounded-lg text-white text-sm transition-all duration-150"
+      className="w-full py-3.5 rounded-lg text-white text-sm transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
       style={
         variant === "primary"
           ? {
@@ -90,24 +97,42 @@ function GlassButton({
 function LoginView({
   onSwitch,
   onSuccess,
+  onForgotPassword,
 }: {
   onSwitch: () => void;
   onSuccess: () => void;
+  onForgotPassword: () => void;
 }) {
   const { login } = useApp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError("");
-    if (!email || !password) {
-      setError("Please fill in all fields.");
+    setLoading(true);
+
+    // Validate input
+    const validation = validateLoginForm(email, password);
+    if (!validation.valid) {
+      setError(validation.error || "Validation failed");
+      setLoading(false);
       return;
     }
-    const ok = login(email, password);
-    if (ok) onSuccess();
-    else setError("Invalid credentials. Try again.");
+
+    try {
+      const result = await login(email, password);
+      if (result.success) {
+        onSuccess();
+      } else {
+        setError(result.error || "Login failed. Please try again.");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -117,11 +142,11 @@ function LoginView({
         <p className="text-white/40 text-sm mt-1">Log in to review games and manage your wishlist.</p>
       </div>
 
-      <SpwnInput label="Email Address" type="email" placeholder="gamer@example.com" value={email} onChange={setEmail} />
-      <SpwnInput label="Password" type="password" placeholder="••••••••" value={password} onChange={setPassword} />
+      <SpwnInput label="Email Address" type="email" placeholder="gamer@example.com" value={email} onChange={setEmail} disabled={loading} />
+      <SpwnInput label="Password" type="password" placeholder="••••••••" value={password} onChange={setPassword} disabled={loading} />
 
-      <div className="flex items-center justify-end">
-        <button className="text-xs" style={{ color: ACCENT }}>Forgot Password?</button>
+      <div className="flex items-center justify-end text-xs">
+        <button onClick={onForgotPassword} style={{ color: ACCENT }}>Forgot Password?</button>
       </div>
 
       {error && (
@@ -130,11 +155,13 @@ function LoginView({
         </div>
       )}
 
-      <GlassButton onClick={handleLogin}>Sign In</GlassButton>
+      <GlassButton onClick={handleLogin} disabled={loading}>
+        {loading ? "Signing In..." : "Sign In"}
+      </GlassButton>
 
       <p className="text-center text-white/40 text-sm">
         Don't have an account?{" "}
-        <button onClick={onSwitch} style={{ color: ACCENT, fontWeight: 600 }}>
+        <button onClick={onSwitch} style={{ color: ACCENT, fontWeight: 600 }} disabled={loading}>
           Sign up
         </button>
       </p>
@@ -153,22 +180,47 @@ function SignupView({
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     setError("");
-    if (!username || !email || !password) {
-      setError("Please fill in all fields.");
+    setLoading(true);
+
+    // Validate form
+    const validation = validateSignupForm(username, email, password);
+    if (!validation.valid) {
+      setError(validation.error || "Validation failed");
+      setLoading(false);
       return;
     }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
     if (!agreed) {
-      setError("Please agree to the Terms of Service.");
+      setError("Please agree to the Terms of Service");
+      setLoading(false);
       return;
     }
-    const ok = signup(username, email, password);
-    if (ok) onSuccess();
-    else setError("Could not create account. Try again.");
+
+    try {
+      const result = await signup(username, email, password);
+      if (result.success) {
+        onSuccess();
+      } else {
+        setError(result.error || "Signup failed. Please try again.");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -178,11 +230,12 @@ function SignupView({
         <p className="text-white/40 text-sm mt-1 px-4">Create an account to review games, rate titles, and build your wishlist.</p>
       </div>
 
-      <SpwnInput label="Username" type="text" placeholder="e.g. AlexGamer99" value={username} onChange={setUsername} />
-      <SpwnInput label="Email Address" type="email" placeholder="gamer@example.com" value={email} onChange={setEmail} />
-      <SpwnInput label="Password" type="password" placeholder="Min. 8 characters" value={password} onChange={setPassword} />
+      <SpwnInput label="Username" type="text" placeholder="e.g. AlexGamer99" value={username} onChange={setUsername} disabled={loading} />
+      <SpwnInput label="Email Address" type="email" placeholder="gamer@example.com" value={email} onChange={setEmail} disabled={loading} />
+      <SpwnInput label="Password" type="password" placeholder="••••••••" value={password} onChange={setPassword} disabled={loading} />
+      <SpwnInput label="Confirm Password" type="password" placeholder="••••••••" value={confirmPassword} onChange={setConfirmPassword} disabled={loading} />
 
-      <label className="flex items-start gap-2.5 cursor-pointer" onClick={() => setAgreed(!agreed)}>
+      <label className="flex items-start gap-2.5 cursor-pointer" onClick={() => !loading && setAgreed(!agreed)}>
         <div
           className="w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 mt-0.5 transition-all"
           style={{ borderColor: agreed ? ACCENT : "rgba(255,255,255,0.25)", background: agreed ? ACCENT : "transparent" }}
@@ -204,11 +257,13 @@ function SignupView({
         </div>
       )}
 
-      <GlassButton onClick={handleSignup}>Create Account</GlassButton>
+      <GlassButton onClick={handleSignup} disabled={loading}>
+        {loading ? "Creating Account..." : "Create Account"}
+      </GlassButton>
 
       <p className="text-center text-white/40 text-sm">
         Already have an account?{" "}
-        <button onClick={onSwitch} style={{ color: ACCENT, fontWeight: 600 }}>Log in</button>
+        <button onClick={onSwitch} style={{ color: ACCENT, fontWeight: 600 }} disabled={loading}>Log in</button>
       </p>
     </div>
   );
@@ -234,10 +289,10 @@ export function AuthPage() {
     <div className="w-full h-full overflow-y-auto" style={{ background: "#08080f" }}>
       {/* Top nav bar */}
       <div
-        className="flex items-center gap-3 px-5 py-3 border-b shrink-0"
+        className="flex items-center gap-3 px-5 h-20 border-b shrink-0"
         style={{ borderColor: "rgba(255,255,255,0.07)", background: "rgba(0,0,0,0.4)" }}
       >
-        <img src={spwnLogo} alt="SPWN" className="w-7 h-7 object-contain" />
+        <img src={spwnLogo} alt="SPWN" className="w-20 h-20 object-contain" />
         <span className="text-white text-base" style={{ fontWeight: 800, letterSpacing: "0.05em" }}>SPWN</span>
       </div>
 
@@ -246,7 +301,7 @@ export function AuthPage() {
         <div className="w-full rounded-xl p-6" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
           <form onSubmit={(e) => e.preventDefault()}>
             {view === "login" ? (
-              <LoginView onSwitch={() => setView("signup")} onSuccess={handleSuccess} />
+              <LoginView onSwitch={() => setView("signup")} onSuccess={handleSuccess} onForgotPassword={() => navigate("/forgot-password")} />
             ) : (
               <SignupView onSwitch={() => setView("login")} onSuccess={handleSuccess} />
             )}

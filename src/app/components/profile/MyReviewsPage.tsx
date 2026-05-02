@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useApp } from "../../context/AppContext";
-import { GAMES } from "../../data/games";
 import { ChevronLeft, Star, Pencil, Check, X, Trash2 } from "lucide-react";
 
 function StarRating({ value, onChange, size = 18, readonly = false }: {
@@ -30,7 +29,7 @@ function StarRating({ value, onChange, size = 18, readonly = false }: {
 
 export function MyReviewsPage() {
   const navigate = useNavigate();
-  const { user, reviews, editReview } = useApp();
+  const { user, reviews, editReview, getGameById } = useApp();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRating, setEditRating] = useState(0);
   const [editText, setEditText] = useState("");
@@ -105,7 +104,7 @@ export function MyReviewsPage() {
           </div>
         ) : (
           myReviews.map((review) => {
-            const game = GAMES.find((g) => g.id === review.gameId);
+            const game = getGameById(review.gameId);
             const isEditing = editingId === review.id;
 
             return (

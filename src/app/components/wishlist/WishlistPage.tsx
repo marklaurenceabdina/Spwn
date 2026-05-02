@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useApp, BacklogStatus } from "../../context/AppContext";
-import { GAMES } from "../../data/games";
 import { Star, X, LogIn, ChevronRight, Gamepad2, Play, CheckCircle2, Clock, Plus, Search } from "lucide-react";
+import { RatingStars } from "../ui/RatingStars";
 
 const TABS: { key: BacklogStatus; label: string; icon: React.ElementType; color: string; bg: string }[] = [
   { key: "want", label: "Want to Play", icon: Clock, color: "#a78bfa", bg: "rgba(167,139,250,0.12)" },
@@ -23,9 +23,10 @@ function StatusBadge({ status }: { status: BacklogStatus }) {
   );
 }
 
+
 export function WishlistPage() {
   const navigate = useNavigate();
-  const { user, backlog, addToBacklog, removeFromBacklog } = useApp();
+  const { user, backlog, addToBacklog, removeFromBacklog, games } = useApp();
   const [activeTab, setActiveTab] = useState<BacklogStatus>("want");
   const [search, setSearch] = useState("");
 
@@ -59,15 +60,15 @@ export function WishlistPage() {
   const allBacklogIds = Object.keys(backlog);
   const totalGames = allBacklogIds.length;
 
-  const tabGames = GAMES.filter((g) => backlog[g.id] === activeTab);
+  const tabGames = games.filter((g) => backlog[g.id] === activeTab);
   const filtered = search.trim()
     ? tabGames.filter((g) => g.title.toLowerCase().includes(search.toLowerCase()))
     : tabGames;
 
   const counts: Record<BacklogStatus, number> = {
-    want: GAMES.filter((g) => backlog[g.id] === "want").length,
-    playing: GAMES.filter((g) => backlog[g.id] === "playing").length,
-    finished: GAMES.filter((g) => backlog[g.id] === "finished").length,
+    want: games.filter((g) => backlog[g.id] === "want").length,
+    playing: games.filter((g) => backlog[g.id] === "playing").length,
+    finished: games.filter((g) => backlog[g.id] === "finished").length,
   };
 
   const handleStatusChange = (gameId: string, status: BacklogStatus) => {
@@ -154,31 +155,33 @@ export function WishlistPage() {
       <div className="px-4">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center py-14 gap-4">
-            {(() => { const tab = TABS.find((t) => t.key === activeTab)!; return (
-              <>
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: tab.bg, border: `1px solid ${tab.color}30` }}>
-                  <tab.icon size={22} style={{ color: tab.color }} />
-                </div>
-                <div className="text-center">
-                  <p className="text-sm mb-1" style={{ color: "var(--spwn-faint)", fontWeight: 600 }}>
-                    {search ? "No games match your search" : `No games ${activeTab === "want" ? "in want to play" : activeTab === "playing" ? "currently playing" : "finished yet"}`}
-                  </p>
-                  <p className="text-xs leading-relaxed" style={{ color: "var(--spwn-fainter)" }}>
-                    {search ? "Try a different search term" : "Browse games and add them to your backlog from the game detail page."}
-                  </p>
-                </div>
-                {!search && (
-                  <button
-                    onClick={() => navigate("/app/discover")}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm"
-                    style={{ background: tab.bg, border: `1px solid ${tab.color}30`, color: tab.color, fontWeight: 700 }}
-                  >
-                    <Plus size={14} />
-                    Discover Games
-                  </button>
-                )}
-              </>
-            ); })()}
+            {(() => {
+              const tab = TABS.find((t) => t.key === activeTab)!; return (
+                <>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: tab.bg, border: `1px solid ${tab.color}30` }}>
+                    <tab.icon size={22} style={{ color: tab.color }} />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm mb-1" style={{ color: "var(--spwn-faint)", fontWeight: 600 }}>
+                      {search ? "No games match your search" : `No games ${activeTab === "want" ? "in want to play" : activeTab === "playing" ? "currently playing" : "finished yet"}`}
+                    </p>
+                    <p className="text-xs leading-relaxed" style={{ color: "var(--spwn-fainter)" }}>
+                      {search ? "Try a different search term" : "Browse games and add them to your backlog from the game detail page."}
+                    </p>
+                  </div>
+                  {!search && (
+                    <button
+                      onClick={() => navigate("/app/discover")}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm"
+                      style={{ background: tab.bg, border: `1px solid ${tab.color}30`, color: tab.color, fontWeight: 700 }}
+                    >
+                      <Plus size={14} />
+                      Discover Games
+                    </button>
+                  )}
+                </>
+              );
+            })()}
           </div>
         ) : (
           <div className="flex flex-col gap-2.5">
@@ -199,9 +202,8 @@ export function WishlistPage() {
                       <p className="text-sm truncate mb-0.5" style={{ fontWeight: 700, color: "var(--spwn-text)" }}>{game.title}</p>
                       <p className="text-xs mb-1.5" style={{ color: "var(--spwn-faint)" }}>{game.year} · {game.developer}</p>
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          <Star size={10} fill="#f59e0b" stroke="none" />
-                          <span className="text-xs" style={{ color: "#f59e0b", fontWeight: 700 }}>{game.rating}</span>
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg" style={{ background: "rgba(0,0,0,0.05)" }}>
+                          <RatingStars rating={game.rating} />
                         </div>
                         <StatusBadge status={currentStatus} />
                       </div>

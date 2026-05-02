@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { GAMES } from "../../data/games";
 import { useApp } from "../../context/AppContext";
 import { Star, Heart, ChevronRight } from "lucide-react";
 import { BookOpen, Sword, LayoutGrid, Crosshair, Cpu, Zap, Shield, Ghost } from "lucide-react";
+import { RatingStars } from "../ui/RatingStars";
 
 const ACCENT = "#00aaff";
 const BORDER = "rgba(255,255,255,0.07)";
@@ -21,23 +21,22 @@ const genreIcons: Record<string, React.ElementType> = {
   Fantasy: Zap,
 };
 
-const ALL_GENRES = Array.from(new Set(GAMES.flatMap((g) => g.genres)));
-
-const byRating = [...GAMES].sort((a, b) => b.rating - a.rating);
-
 export function GamesPage() {
   const navigate = useNavigate();
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useApp();
+  const { addToBacklog, removeFromBacklog, getBacklogStatus, games } = useApp();
   const [activeGenre, setActiveGenre] = useState<string | null>(null);
 
+  const ALL_GENRES = Array.from(new Set(games.flatMap((g) => g.genres)));
+  const byRating = [...games].sort((a, b) => b.rating - a.rating);
+
   const filteredByGenre = activeGenre
-    ? GAMES.filter((g) => g.genres.includes(activeGenre)).sort((a, b) => b.rating - a.rating)
+    ? games.filter((g) => g.genres.includes(activeGenre)).sort((a, b) => b.rating - a.rating)
     : null;
 
   const toggleWishlist = (e: React.MouseEvent, gameId: string) => {
     e.stopPropagation();
-    if (isInWishlist(gameId)) removeFromWishlist(gameId);
-    else addToWishlist(gameId);
+    if (getBacklogStatus(gameId) === "want") removeFromBacklog(gameId);
+    else addToBacklog(gameId, "want");
   };
 
   return (
@@ -87,7 +86,7 @@ export function GamesPage() {
             <button onClick={() => setActiveGenre(null)} className="text-xs" style={{ color: "var(--spwn-faint)" }}>Clear</button>
           </div>
           <div className="flex flex-col gap-2.5">
-            {filteredByGenre.map((game) => (
+            {filteredByGenre.slice(0, 10).map((game) => (
               <div
                 key={game.id}
                 onClick={() => navigate(`/app/game/${game.id}`)}
@@ -100,12 +99,11 @@ export function GamesPage() {
                   <p className="text-xs mt-0.5" style={{ color: "var(--spwn-faint)" }}>{game.year} • {game.developer}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <div className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs" style={{ background: "rgba(0,0,0,0.5)", fontWeight: 700 }}>
-                    <Star size={9} fill="#f59e0b" stroke="none" />
-                    <span style={{ color: "#f59e0b" }}>{game.rating}</span>
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg" style={{ background: "rgba(0,0,0,0.5)" }}>
+                    <RatingStars rating={game.rating} />
                   </div>
                   <button onClick={(e) => toggleWishlist(e, game.id)}>
-                    <Heart size={15} fill={isInWishlist(game.id) ? "var(--spwn-accent)" : "none"} stroke={isInWishlist(game.id) ? "var(--spwn-accent)" : "var(--spwn-faint)"} />
+                    <Heart size={15} fill={getBacklogStatus(game.id) === "want" ? "var(--spwn-accent)" : "none"} stroke={getBacklogStatus(game.id) === "want" ? "var(--spwn-accent)" : "var(--spwn-faint)"} />
                   </button>
                 </div>
               </div>
@@ -128,7 +126,7 @@ export function GamesPage() {
           </div>
 
           <div className="flex flex-col gap-3">
-            {byRating.slice(0, 5).map((game, i) => (
+            {byRating.slice(0, 10).map((game, i) => (
               <div
                 key={game.id}
                 onClick={() => navigate(`/app/game/${game.id}`)}
@@ -143,11 +141,10 @@ export function GamesPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 px-2 py-1 rounded-lg" style={{ background: "rgba(0,0,0,0.6)" }}>
-                      <Star size={11} fill="#f59e0b" stroke="none" />
-                      <span className="text-xs" style={{ color: "#f59e0b", fontWeight: 700 }}>{game.rating}</span>
+                      <RatingStars rating={game.rating} />
                     </div>
                     <button onClick={(e) => toggleWishlist(e, game.id)}>
-                      <Heart size={15} fill={isInWishlist(game.id) ? "var(--spwn-accent)" : "none"} stroke={isInWishlist(game.id) ? "var(--spwn-accent)" : "rgba(255,255,255,0.5)"} />
+                      <Heart size={15} fill={getBacklogStatus(game.id) === "want" ? "var(--spwn-accent)" : "none"} stroke={getBacklogStatus(game.id) === "want" ? "var(--spwn-accent)" : "var(--spwn-faint)"} />
                     </button>
                   </div>
                 </div>

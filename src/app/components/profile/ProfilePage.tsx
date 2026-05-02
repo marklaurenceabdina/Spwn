@@ -355,11 +355,13 @@ export function ProfilePage() {
             icon={Shield}
             label="Privacy & Security"
             subtitle="Manage data and account security"
+            onClick={() => navigate("/app/privacy-security")}
           />
           <SettingRow
             icon={HelpCircle}
             label="Help & Support"
             subtitle="FAQs and contact"
+            onClick={() => navigate("/app/help-support")}
           />
           <SettingRow
             icon={LogOut}

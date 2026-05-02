@@ -1,7 +1,7 @@
 import { Outlet, useNavigate, useLocation } from "react-router";
 import { useApp } from "../../context/AppContext";
 import spwnLogo from "@/assets/spwn-logo.png";
-import { Home, Compass, Gamepad2, Users, Search, UserCircle } from "lucide-react";
+import { Home, Compass, Gamepad2, Users, Search, UserCircle, Settings } from "lucide-react";
 
 const navItems = [
   { icon: Home, label: "Home", path: "/app" },
@@ -21,11 +21,11 @@ export function MobileLayout() {
     <div className="w-full h-full flex flex-col relative" style={{ background: "var(--spwn-bg)" }}>
       {/* Top nav bar */}
       <div
-        className="shrink-0 flex items-center justify-between px-4 py-2.5 border-b z-30"
+        className="shrink-0 flex items-center justify-between px-4 h-20 border-b z-30"
         style={{ borderColor: "var(--spwn-border)", background: "var(--spwn-nav)" }}
       >
         <button onClick={() => navigate("/app")} className="flex items-center gap-2">
-          <img src={spwnLogo} alt="SPWN" className="w-16 h-16 object-contain" />
+          <img src={spwnLogo} alt="SPWN" className="w-20 h-20 object-contain" />
           <span className="text-lg" style={{ color: "var(--spwn-text)", fontWeight: 800, letterSpacing: "0.06em" }}>
             SPWN
           </span>
@@ -38,6 +38,17 @@ export function MobileLayout() {
           >
             <Search size={17} />
           </button>
+
+          {user?.role === "admin" && (
+            <button
+              onClick={() => navigate("/app/admin/games")}
+              className="px-2 py-1 rounded text-xs text-white transition-all"
+              style={{ background: "rgba(255, 107, 107, 0.2)", fontWeight: 600, color: "#ff6b6b" }}
+              title="Admin Panel"
+            >
+              <Settings size={16} />
+            </button>
+          )}
 
           {user ? (
             <button

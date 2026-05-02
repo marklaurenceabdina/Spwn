@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useApp } from "../../context/AppContext";
-import { GAMES } from "../../data/games";
 import {
   ThumbsUp,
   MessageCircle,
@@ -45,8 +44,6 @@ interface Post {
 }
 
 // ── Seed Data ──────────────────────────────────────────────────────────────
-const trendingGames = [...GAMES].sort((a, b) => b.popularity - a.popularity).slice(0, 4);
-
 const topContributors = [
   { rank: 1, initials: "RM", avatarColor: "#dc2626", username: "RPG_Master", points: 142 },
   { rank: 2, initials: "LH", avatarColor: "#059669", username: "LoreHunter", points: 98 },
@@ -109,18 +106,20 @@ const SEED_POSTS: Post[] = [
 
 // ── Game Tag Picker ────────────────────────────────────────────────────────
 function GameTagPicker({
+  games,
   onSelect,
   onClose,
 }: {
+  games: any[];
   onSelect: (game: { id: string; title: string } | null) => void;
   onClose: () => void;
 }) {
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
-    if (!query.trim()) return GAMES;
+    if (!query.trim()) return games;
     const q = query.toLowerCase();
-    return GAMES.filter((g) => g.title.toLowerCase().includes(q) || g.genres.some((gen) => gen.toLowerCase().includes(q)));
-  }, [query]);
+    return games.filter((g) => g.title.toLowerCase().includes(q) || g.genres.some((gen: string) => gen.toLowerCase().includes(q)));
+  }, [query, games]);
 
   return (
     <div
@@ -488,7 +487,8 @@ function PostCard({
 // ── Main Page ──────────────────────────────────────────────────────────────
 export function CommunityPage() {
   const navigate = useNavigate();
-  const { user } = useApp();
+  const { user, reviews, games, getGameById } = useApp();
+  const [postSubject, setPostSubject] = useState("");
   const [postText, setPostText] = useState("");
   const [posts, setPosts] = useState<Post[]>(SEED_POSTS);
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
@@ -496,8 +496,11 @@ export function CommunityPage() {
   const [selectedGame, setSelectedGame] = useState<{ id: string; title: string } | null>(null);
   const [activeCommentPost, setActiveCommentPost] = useState<Post | null>(null);
 
+  const trendingGames = [...games].sort((a, b) => b.popularity - a.popularity).slice(0, 4);
+
   const handlePost = () => {
     if (!postText.trim() || !user) return;
+    const subject = postSubject.trim();
     const newPost: Post = {
       id: `p_${Date.now()}`,
       avatar: user.username.charAt(0).toUpperCase(),
@@ -507,12 +510,13 @@ export function CommunityPage() {
       gameId: selectedGame?.id ?? null,
       gameTag: selectedGame?.title ?? "General",
       gameTagColor: selectedGame ? "#0891b2" : "#6b7280",
-      title: postText.trim().slice(0, 80),
+      title: subject || postText.trim().slice(0, 80),
       body: postText.trim(),
       likes: 0,
       comments: [],
     };
     setPosts((prev) => [newPost, ...prev]);
+    setPostSubject("");
     setPostText("");
     setSelectedGame(null);
   };
@@ -579,14 +583,24 @@ export function CommunityPage() {
               >
                 {user.username.charAt(0).toUpperCase()}
               </div>
-              <textarea
-                value={postText}
-                onChange={(e) => setPostText(e.target.value)}
-                placeholder="Share a gaming experience, ask for advice…"
-                className="flex-1 bg-transparent text-sm outline-none resize-none"
-                style={{ color: "var(--spwn-text)" }}
-                rows={2}
-              />
+              <div className="flex-1 flex flex-col gap-2">
+                <input
+                  type="text"
+                  value={postSubject}
+                  onChange={(e) => setPostSubject(e.target.value)}
+                  placeholder="Subject"
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                  style={{ background: "var(--spwn-input)", border: "1px solid var(--spwn-border)", color: "var(--spwn-text)", fontWeight: 700 }}
+                />
+                <textarea
+                  value={postText}
+                  onChange={(e) => setPostText(e.target.value)}
+                  placeholder="Share a gaming experience, ask for advice…"
+                  className="w-full bg-transparent text-sm outline-none resize-none"
+                  style={{ color: "var(--spwn-text)" }}
+                  rows={3}
+                />
+              </div>
             </div>
 
             {selectedGame && (
@@ -705,6 +719,7 @@ export function CommunityPage() {
       {/* ── Modals ── */}
       {showGamePicker && (
         <GameTagPicker
+          games={games}
           onSelect={(game) => { setSelectedGame(game); setShowGamePicker(false); }}
           onClose={() => setShowGamePicker(false)}
         />

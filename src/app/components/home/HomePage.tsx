@@ -1,34 +1,11 @@
 import { useNavigate } from "react-router";
-import { GAMES } from "../../data/games";
 import { useApp } from "../../context/AppContext";
 import { Play, ChevronRight, Star, Heart, TrendingUp, Trophy, Zap } from "lucide-react";
+import { RatingStars } from "../ui/RatingStars";
 
 const ACCENT = "#00aaff";
 const BORDER = "rgba(255,255,255,0.07)";
 const CARD = "#0e0e1c";
-
-// Sort for each section
-const byPopularity = [...GAMES].sort((a, b) => b.popularity - a.popularity);
-const byRating = [...GAMES].sort((a, b) => b.rating - a.rating);
-const featured = byPopularity[0];
-const trending = byPopularity.slice(0, 5);
-const topRated = byRating.slice(0, 3);
-
-// Trending categories: count genre occurrences
-const genreCounts: Record<string, number> = {};
-GAMES.forEach((g) => g.genres.forEach((genre) => { genreCounts[genre] = (genreCounts[genre] ?? 0) + 1; }));
-const trendingCategories = Object.entries(genreCounts)
-  .sort((a, b) => b[1] - a[1])
-  .slice(0, 5);
-
-function StarsBadge({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs" style={{ background: "rgba(0,0,0,0.75)", fontWeight: 700 }}>
-      <Star size={9} fill="#f59e0b" stroke="none" />
-      <span style={{ color: "#f59e0b" }}>{rating}</span>
-    </div>
-  );
-}
 
 function SectionHeader({ icon: Icon, title, accentColor = ACCENT, onSeeAll }: { icon: React.ElementType; title: string; accentColor?: string; onSeeAll?: () => void }) {
   return (
@@ -49,12 +26,28 @@ function SectionHeader({ icon: Icon, title, accentColor = ACCENT, onSeeAll }: { 
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useApp();
+  const { user, darkMode, toggleDarkMode, addToBacklog, removeFromBacklog, getBacklogStatus, games } = useApp();
+
+  // Sort for each section
+  const byPopularity = [...games].sort((a, b) => b.popularity - a.popularity);
+  const byRating = [...games].sort((a, b) => b.rating - a.rating);
+  const featured = byPopularity[0];
+  const trending = byPopularity.slice(0, 5);
+  const topRated = byRating.slice(0, 3);
+
+  // Calculate trending categories
+  const genreCount = new Map<string, number>();
+  games.forEach((game) => {
+    game.genres.forEach((genre) => {
+      genreCount.set(genre, (genreCount.get(genre) || 0) + 1);
+    });
+  });
+  const trendingCategories = Array.from(genreCount.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   const toggleWishlist = (e: React.MouseEvent, gameId: string) => {
     e.stopPropagation();
-    if (isInWishlist(gameId)) removeFromWishlist(gameId);
-    else addToWishlist(gameId);
+    if (getBacklogStatus(gameId) === "want") removeFromBacklog(gameId);
+    else addToBacklog(gameId, "want");
   };
 
   return (
@@ -85,11 +78,11 @@ export function HomePage() {
               onClick={(e) => toggleWishlist(e, featured.id)}
               className="w-8 h-8 flex items-center justify-center rounded-full transition-all"
               style={{
-                background: isInWishlist(featured.id) ? "rgba(0,170,255,0.2)" : "rgba(255,255,255,0.1)",
-                border: `1px solid ${isInWishlist(featured.id) ? "rgba(0,170,255,0.5)" : "rgba(255,255,255,0.2)"}`,
+                background: getBacklogStatus(featured.id) === "want" ? "rgba(0,170,255,0.2)" : "rgba(255,255,255,0.1)",
+                border: `1px solid ${getBacklogStatus(featured.id) === "want" ? "rgba(0,170,255,0.5)" : "rgba(255,255,255,0.2)"}`,
               }}
             >
-              <Heart size={13} fill={isInWishlist(featured.id) ? "var(--spwn-accent)" : "none"} stroke={isInWishlist(featured.id) ? "var(--spwn-accent)" : "white"} />
+              <Heart size={13} fill={getBacklogStatus(featured.id) === "want" ? "var(--spwn-accent)" : "none"} stroke={getBacklogStatus(featured.id) === "want" ? "var(--spwn-accent)" : "white"} />
             </button>
           </div>
         </div>
@@ -114,9 +107,9 @@ export function HomePage() {
                 <p className="text-white/40 text-xs mt-0.5">{game.year} • {game.genres[0]}</p>
               </div>
               <div className="flex items-center gap-2">
-                <StarsBadge rating={game.rating} />
+                <RatingStars rating={game.rating} className="px-1.5 py-0.5 rounded text-xs" />
                 <button onClick={(e) => toggleWishlist(e, game.id)}>
-                  <Heart size={14} fill={isInWishlist(game.id) ? "var(--spwn-accent)" : "none"} stroke={isInWishlist(game.id) ? "var(--spwn-accent)" : "rgba(255,255,255,0.3)"} />
+                  <Heart size={14} fill={getBacklogStatus(game.id) === "want" ? "var(--spwn-accent)" : "none"} stroke={getBacklogStatus(game.id) === "want" ? "var(--spwn-accent)" : "rgba(255,255,255,0.3)"} />
                 </button>
               </div>
             </div>
@@ -140,7 +133,7 @@ export function HomePage() {
                 style={{ background: ["#f59e0b", "#94a3b8", "#cd7c2f"][i], fontSize: 10, fontWeight: 800 }}>
                 {i + 1}
               </div>
-              <div className="absolute top-2 right-2"><StarsBadge rating={game.rating} /></div>
+              <div className="absolute top-2 right-2"><RatingStars rating={game.rating} className="px-1.5 py-0.5 rounded text-xs" /></div>
               <div className="p-2.5">
                 <p className="text-xs truncate overlay-white" style={{ fontWeight: 600 }}>{game.title}</p>
                 <p className="text-xs mt-0.5 overlay-white-secondary">{game.developer}</p>
@@ -156,7 +149,7 @@ export function HomePage() {
         <p className="text-white/30 text-xs mb-3">Most active genres on the platform.</p>
         <div className="flex flex-col gap-2">
           {trendingCategories.map(([genre, count], i) => {
-            const pct = Math.round((count / GAMES.length) * 100);
+            const pct = Math.round((count / games.length) * 100);
             return (
               <div
                 key={genre}

@@ -1,15 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { GAMES, Game } from "../../data/games";
+import { Game } from "../../data/games";
 import { useApp } from "../../context/AppContext";
 import { Search, X, Grid3X3, List, Star, Heart, SlidersHorizontal } from "lucide-react";
+import { RatingStars } from "../ui/RatingStars";
 
 const ACCENT = "#00aaff";
 const BORDER = "rgba(255,255,255,0.07)";
 const CARD = "#0e0e1c";
-
-const ALL_GENRES = Array.from(new Set(GAMES.flatMap((g) => g.genres))).sort();
-const ALL_PLATFORMS = Array.from(new Set(GAMES.flatMap((g) => g.platform))).sort();
 
 type SortKey = "rating" | "popularity" | "year" | "title";
 type ViewMode = "grid" | "list";
@@ -25,8 +23,7 @@ function GameGridCard({ game, onNavigate, wishlisted, onToggleWishlist }: { game
         <img src={game.image} alt={game.title} className="w-full h-32 object-cover" />
         <div className="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded text-xs"
           style={{ background: "rgba(0,0,0,0.8)", fontWeight: 700 }}>
-          <Star size={9} fill="#f59e0b" stroke="none" />
-          <span style={{ color: "#f59e0b" }}>{game.rating}</span>
+          <RatingStars rating={game.rating} />
         </div>
         <button
           onClick={onToggleWishlist}
@@ -59,8 +56,7 @@ function GameListCard({ game, onNavigate, wishlisted, onToggleWishlist }: { game
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <div className="flex items-center gap-1 px-2 py-1 rounded text-xs" style={{ background: "rgba(0,0,0,0.5)", fontWeight: 700 }}>
-          <Star size={10} fill="#f59e0b" stroke="none" />
-          <span style={{ color: "#f59e0b" }}>{game.rating}</span>
+          <RatingStars rating={game.rating} />
         </div>
         <button onClick={onToggleWishlist}>
           <Heart size={15} fill={wishlisted ? "var(--spwn-accent)" : "none"} stroke={wishlisted ? "var(--spwn-accent)" : "rgba(255,255,255,0.3)"} />
@@ -73,7 +69,7 @@ function GameListCard({ game, onNavigate, wishlisted, onToggleWishlist }: { game
 export function DiscoverPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useApp();
+  const { addToBacklog, removeFromBacklog, getBacklogStatus, games } = useApp();
 
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [selectedGenre, setSelectedGenre] = useState<string>(searchParams.get("genre") ?? "");
@@ -83,7 +79,9 @@ export function DiscoverPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
 
-  const PER_PAGE = 6;
+  const ALL_GENRES = Array.from(new Set(games.flatMap((g) => g.genres))).sort();
+  const ALL_PLATFORMS = Array.from(new Set(games.flatMap((g) => g.platform))).sort();
+  const PER_PAGE = 10;
 
   useEffect(() => {
     const genre = searchParams.get("genre");
@@ -91,7 +89,7 @@ export function DiscoverPage() {
   }, [searchParams]);
 
   const filtered = useMemo(() => {
-    let list = [...GAMES];
+    let list = [...games];
     if (query.trim()) {
       const q = query.toLowerCase();
       list = list.filter(
@@ -111,15 +109,15 @@ export function DiscoverPage() {
       return a.title.localeCompare(b.title);
     });
     return list;
-  }, [query, selectedGenre, selectedPlatform, sortBy]);
+  }, [query, selectedGenre, selectedPlatform, sortBy, games]);
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE);
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const toggleWishlist = (e: React.MouseEvent, gameId: string) => {
     e.stopPropagation();
-    if (isInWishlist(gameId)) removeFromWishlist(gameId);
-    else addToWishlist(gameId);
+    if (getBacklogStatus(gameId) === "want") removeFromBacklog(gameId);
+    else addToBacklog(gameId, "want");
   };
 
   const hasFilters = query || selectedGenre || selectedPlatform || sortBy !== "popularity";
@@ -274,7 +272,7 @@ export function DiscoverPage() {
                 key={game.id}
                 game={game}
                 onNavigate={() => navigate(`/app/game/${game.id}`)}
-                wishlisted={isInWishlist(game.id)}
+                wishlisted={getBacklogStatus(game.id) === "want"}
                 onToggleWishlist={(e) => toggleWishlist(e, game.id)}
               />
             ))}
@@ -286,7 +284,7 @@ export function DiscoverPage() {
                 key={game.id}
                 game={game}
                 onNavigate={() => navigate(`/app/game/${game.id}`)}
-                wishlisted={isInWishlist(game.id)}
+                wishlisted={getBacklogStatus(game.id) === "want"}
                 onToggleWishlist={(e) => toggleWishlist(e, game.id)}
               />
             ))}

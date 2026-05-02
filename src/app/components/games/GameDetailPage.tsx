@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { GAMES } from "../../data/games";
 import { useApp } from "../../context/AppContext";
 import { BacklogStatus } from "../../context/AppContext";
 import { Review } from "../../context/AppContext";
@@ -38,25 +37,53 @@ function StarRating({
   readonly?: boolean;
 }) {
   const [hover, setHover] = useState(0);
+  const displayValue = readonly ? value : hover || value;
+
   return (
     <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          disabled={readonly}
-          onMouseEnter={() => !readonly && setHover(n)}
-          onMouseLeave={() => !readonly && setHover(0)}
-          onClick={() => onChange?.(n)}
-          style={{ cursor: readonly ? "default" : "pointer" }}
-        >
-          <Star
-            size={size}
-            fill={(hover || value) >= n ? "#f59e0b" : "none"}
-            stroke={(hover || value) >= n ? "#f59e0b" : "rgba(255,255,255,0.25)"}
-            strokeWidth={1.5}
-          />
-        </button>
-      ))}
+      {[1, 2, 3, 4, 5].map((n) => {
+        const fillFraction = readonly
+          ? Math.max(0, Math.min(1, displayValue - (n - 1)))
+          : displayValue >= n
+            ? 1
+            : 0;
+
+        return (
+          <button
+            key={n}
+            disabled={readonly}
+            onMouseEnter={() => !readonly && setHover(n)}
+            onMouseLeave={() => !readonly && setHover(0)}
+            onClick={() => onChange?.(n)}
+            style={{ cursor: readonly ? "default" : "pointer", position: "relative", padding: 0, border: "none", background: "transparent" }}
+          >
+            <Star
+              size={size}
+              fill="none"
+              stroke={fillFraction > 0 ? "#f59e0b" : "rgba(255,255,255,0.25)"}
+              strokeWidth={1.5}
+            />
+            {fillFraction > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: `${fillFraction * 100}%`,
+                  overflow: "hidden",
+                  display: "inline-flex",
+                }}
+              >
+                <Star
+                  size={size}
+                  fill="#f59e0b"
+                  stroke="#f59e0b"
+                  strokeWidth={1.5}
+                />
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -298,9 +325,10 @@ export function GameDetailPage() {
     getUserRating,
     setUserRating,
     darkMode,
+    getGameById,
   } = useApp();
 
-  const game = GAMES.find((g) => g.id === id);
+  const game = getGameById(id || "");
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [showTrailer, setShowTrailer] = useState(false);
   const [reviewText, setReviewText] = useState("");
@@ -344,12 +372,12 @@ export function GameDetailPage() {
         <button
           onClick={() => navigate(-1)}
           className="absolute top-3 left-3 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs"
-          style={{ 
+          style={{
             color: darkMode ? "white" : "#0d1117",
-            background: darkMode ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.7)", 
-            backdropFilter: "blur(8px)", 
-            border: darkMode ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.15)", 
-            fontWeight: 600 
+            background: darkMode ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.7)",
+            backdropFilter: "blur(8px)",
+            border: darkMode ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.15)",
+            fontWeight: 600
           }}
         >
           <ChevronLeft size={14} />
@@ -362,12 +390,12 @@ export function GameDetailPage() {
         <button
           onClick={() => setShowTrailer(true)}
           className="absolute bottom-5 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs"
-          style={{ 
+          style={{
             color: darkMode ? "white" : "#0d1117",
-            background: darkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.8)", 
-            backdropFilter: "blur(8px)", 
-            border: darkMode ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(0,0,0,0.15)", 
-            fontWeight: 600 
+            background: darkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.8)",
+            backdropFilter: "blur(8px)",
+            border: darkMode ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(0,0,0,0.15)",
+            fontWeight: 600
           }}
         >
           <Play size={11} fill={darkMode ? "white" : "#0d1117"} stroke="none" />
@@ -401,11 +429,13 @@ export function GameDetailPage() {
         <div className="flex items-center gap-3 mt-2.5">
           <div className="flex items-center gap-1.5">
             <Star size={16} fill="#f59e0b" stroke="none" />
-            <span className="text-xl" style={{ color: "var(--spwn-text)", fontWeight: 800 }}>{avgRating}</span>
+            <span className="text-xl" style={{ color: "var(--spwn-text)", fontWeight: 800 }}>{(Number(avgRating) / 2).toFixed(1)}</span>
           </div>
           <div>
-            <p className="text-xs" style={{ color: "var(--spwn-faint)" }}>{reviews.length.toLocaleString()} reviews</p>
-            <StarRating value={Math.round(Number(avgRating) / 2)} size={11} readonly />
+            <p className="text-xs" style={{ color: "var(--spwn-faint)" }}>
+              {reviews.length.toLocaleString()} {reviews.length === 1 ? "review" : "reviews"}
+            </p>
+            <StarRating value={Number(avgRating) / 2} size={11} readonly />
           </div>
           {user && (
             <div className="ml-auto flex flex-col items-end">
@@ -445,7 +475,11 @@ export function GameDetailPage() {
               borderBottom: activeTab === tab ? "2px solid var(--spwn-accent)" : "2px solid transparent",
             }}
           >
-            {tab === "reviews" ? `Reviews (${reviews.length})` : tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab === "reviews"
+              ? reviews.length === 1
+                ? `Review (1)`
+                : `Reviews (${reviews.length})`
+              : tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
         ))}
       </div>
@@ -522,9 +556,11 @@ export function GameDetailPage() {
             {/* Rating summary */}
             <div className="rounded-xl p-4 flex items-center gap-4" style={{ background: "var(--spwn-card)", border: "1px solid var(--spwn-border)" }}>
               <div className="text-center">
-                <p className="text-4xl" style={{ color: "var(--spwn-text)", fontWeight: 800 }}>{avgRating}</p>
-                <StarRating value={Math.round(Number(avgRating) / 2)} size={12} readonly />
-                <p className="text-xs mt-1" style={{ color: "var(--spwn-fainter)" }}>{reviews.length} reviews</p>
+                <p className="text-4xl" style={{ color: "var(--spwn-text)", fontWeight: 800 }}>{(Number(avgRating) / 2).toFixed(1)}</p>
+                <StarRating value={Number(avgRating) / 2} size={12} readonly />
+                <p className="text-xs mt-1" style={{ color: "var(--spwn-fainter)" }}>
+                  {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
+                </p>
               </div>
               <div className="flex-1 flex flex-col gap-1.5">
                 {[5, 4, 3, 2, 1].map((star) => {

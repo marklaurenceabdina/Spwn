@@ -1,10 +1,21 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { SEED_REVIEWS } from "../data/games";
+import { SEED_REVIEWS, GAMES as INITIAL_GAMES, Game } from "../data/games";
+import { hashPassword, verifyPassword } from "../utils/auth";
 
 export interface User {
   id: string;
   username: string;
   email: string;
+  role: "user" | "admin";
+}
+
+interface StoredUser {
+  id: string;
+  username: string;
+  email: string;
+  passwordHash: string;
+  role: "user" | "admin";
+  createdAt: string;
 }
 
 export interface Review {
@@ -20,6 +31,10 @@ export interface Review {
 export type BacklogStatus = "want" | "playing" | "finished";
 export type Backlog = Record<string, BacklogStatus>;
 
+export interface AuthError {
+  message: string;
+}
+
 interface AppState {
   user: User | null;
   darkMode: boolean;
@@ -27,9 +42,10 @@ interface AppState {
   wishlist: Set<string>;
   reviews: Review[];
   userRatings: Record<string, number>;
+  games: Game[];
   toggleDarkMode: () => void;
-  login: (email: string, password: string, username?: string) => boolean;
-  signup: (username: string, email: string, password: string) => boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   addToBacklog: (gameId: string, status: BacklogStatus) => void;
   removeFromBacklog: (gameId: string) => void;
@@ -44,6 +60,10 @@ interface AppState {
   hasReviewedGame: (gameId: string) => boolean;
   setUserRating: (gameId: string, rating: number) => void;
   getUserRating: (gameId: string) => number;
+  createGame: (game: Omit<Game, "id">) => void;
+  updateGame: (gameId: string, game: Partial<Game>) => void;
+  deleteGame: (gameId: string) => void;
+  getGameById: (gameId: string) => Game | undefined;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -63,6 +83,28 @@ function saveToStorage(key: string, value: unknown) {
   } catch { }
 }
 
+/**
+ * Initialize predefined admin account
+ */
+async function initializeAdminAccount() {
+  const users = loadFromStorage<StoredUser[]>("spwn_users", []);
+  const adminExists = users.some((u) => u.email === "admin@spwn.dev");
+
+  if (!adminExists) {
+    const adminHash = await hashPassword("admin123");
+    const adminUser: StoredUser = {
+      id: `user_${Date.now()}`,
+      username: "Admin",
+      email: "admin@spwn.dev",
+      passwordHash: adminHash,
+      role: "admin",
+      createdAt: new Date().toISOString(),
+    };
+    users.push(adminUser);
+    saveToStorage("spwn_users", users);
+  }
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => loadFromStorage("spwn_user", null));
   const [darkMode, setDarkMode] = useState<boolean>(() => loadFromStorage("spwn_dark", true));
@@ -73,6 +115,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   });
   const [reviews, setReviews] = useState<Review[]>(() => loadFromStorage("spwn_reviews", SEED_REVIEWS));
   const [userRatings, setUserRatings] = useState<Record<string, number>>(() => loadFromStorage("spwn_ratings", {}));
+  const [games, setGames] = useState<Game[]>(() => loadFromStorage("spwn_games", INITIAL_GAMES));
+
+  // Initialize admin account on first load
+  useEffect(() => {
+    initializeAdminAccount();
+  }, []);
 
   useEffect(() => saveToStorage("spwn_user", user), [user]);
   useEffect(() => saveToStorage("spwn_dark", darkMode), [darkMode]);
@@ -80,23 +128,95 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => saveToStorage("spwn_wishlist", Array.from(wishlist)), [wishlist]);
   useEffect(() => saveToStorage("spwn_reviews", reviews), [reviews]);
   useEffect(() => saveToStorage("spwn_ratings", userRatings), [userRatings]);
+  useEffect(() => saveToStorage("spwn_games", games), [games]);
 
   function toggleDarkMode() {
     setDarkMode((prev) => !prev);
   }
 
-  function login(email: string, _password: string, username?: string): boolean {
-    if (!email) return false;
-    const id = btoa(email);
-    setUser({ id, username: username ?? email.split("@")[0], email });
-    return true;
+  /**
+   * Secure login with password verification
+   */
+  async function login(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+    if (!email || !password) {
+      return { success: false, error: "Email and password are required" };
+    }
+
+    const users = loadFromStorage<StoredUser[]>("spwn_users", []);
+    const storedUser = users.find((u) => u.email === email);
+
+    if (!storedUser) {
+      return { success: false, error: "Invalid email or password" };
+    }
+
+    try {
+      const isPasswordValid = await verifyPassword(password, storedUser.passwordHash);
+
+      if (!isPasswordValid) {
+        return { success: false, error: "Invalid email or password" };
+      }
+
+      const sessionUser: User = {
+        id: storedUser.id,
+        username: storedUser.username,
+        email: storedUser.email,
+        role: storedUser.role,
+      };
+
+      setUser(sessionUser);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: "Authentication failed. Please try again." };
+    }
   }
 
-  function signup(username: string, email: string, _password: string): boolean {
-    if (!username || !email) return false;
-    const id = btoa(email + Date.now());
-    setUser({ id, username, email });
-    return true;
+  /**
+   * Secure signup with password hashing
+   */
+  async function signup(username: string, email: string, password: string): Promise<{ success: boolean; error?: string }> {
+    if (!username || !email || !password) {
+      return { success: false, error: "All fields are required" };
+    }
+
+    const users = loadFromStorage<StoredUser[]>("spwn_users", []);
+
+    // Check if email already exists
+    if (users.some((u) => u.email === email)) {
+      return { success: false, error: "Email is already registered" };
+    }
+
+    // Check if username is already taken
+    if (users.some((u) => u.username === username)) {
+      return { success: false, error: "Username is already taken" };
+    }
+
+    try {
+      const passwordHash = await hashPassword(password);
+
+      const newUser: StoredUser = {
+        id: `user_${Date.now()}`,
+        username,
+        email,
+        passwordHash,
+        role: "user",
+        createdAt: new Date().toISOString(),
+      };
+
+      users.push(newUser);
+      saveToStorage("spwn_users", users);
+
+      const sessionUser: User = {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+      };
+
+      setUser(sessionUser);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: "Failed to create account. Please try again." };
+    }
   }
 
   function logout() {
@@ -185,6 +305,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return userRatings[gameId] ?? 0;
   }
 
+  function createGame(gameData: Omit<Game, "id">) {
+    const newGame: Game = {
+      ...gameData,
+      id: `game_${Date.now()}`,
+    };
+    setGames((prev) => [newGame, ...prev]);
+  }
+
+  function updateGame(gameId: string, gameData: Partial<Game>) {
+    setGames((prev) =>
+      prev.map((g) =>
+        g.id === gameId ? { ...g, ...gameData } : g
+      )
+    );
+  }
+
+  function deleteGame(gameId: string) {
+    setGames((prev) => prev.filter((g) => g.id !== gameId));
+  }
+
+  function getGameById(gameId: string): Game | undefined {
+    return games.find((g) => g.id === gameId);
+  }
+
   return (
     <AppContext.Provider
       value={{
@@ -194,6 +338,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         wishlist,
         reviews,
         userRatings,
+        games,
         toggleDarkMode,
         login,
         signup,
@@ -211,6 +356,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         hasReviewedGame,
         setUserRating,
         getUserRating,
+        createGame,
+        updateGame,
+        deleteGame,
+        getGameById,
       }}
     >
       {children}

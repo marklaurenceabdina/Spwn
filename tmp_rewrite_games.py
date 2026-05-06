@@ -25,8 +25,13 @@ new_array = '''export const GAMES: Game[] = [
     reviewCount: 12840,
     tags: ["Open World", "Story Rich", "Dark Fantasy", "Mature", "Choices Matter"],
     platform: ["PC", "PlayStation 4/5", "Xbox One/Series", "Nintendo Switch"],
+<<<<<<< HEAD
+    minSpecs: { os: "Android 10+ / iOS 13+", cpu: "MediaTek Helio G85 / Snapdragon 662", ram: "3 GB", gpu: "", storage: "10 GB storage" },
+    recSpecs: { os: "Android 12+ / iOS 15+", cpu: "MediaTek Dimensity 1000 / Snapdragon 888", ram: "4 GB", gpu: "", storage: "10 GB storage" },
+=======
     minSpecs: { os: "Windows 7/8/10 64-bit", cpu: "Intel Core i5-2500K 3.3 GHz", ram: "6 GB", gpu: "NVIDIA GTX 660 / AMD Radeon HD 7870", storage: "35 GB" },
     recSpecs: { os: "Windows 10 64-bit", cpu: "Intel Core i7-3770 3.4 GHz", ram: "8 GB", gpu: "NVIDIA GTX 770 / AMD Radeon RX 480", storage: "35 GB SSD" },
+>>>>>>> 99e24f9592138587d512874a69224916a427016c
     trailerVideoId: "c0i88t0Kacs",
     popularity: 97,
   },

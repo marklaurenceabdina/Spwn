@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+<<<<<<< HEAD
+import spwnLogo from "../../../assets/spwn-logo.png";
+=======
 import spwnLogo from "@/assets/spwn-logo.png";
+>>>>>>> 99e24f9592138587d512874a69224916a427016c
 import { ChevronLeft, CheckCircle2 } from "lucide-react";
 
 const ACCENT = "#00aaff";

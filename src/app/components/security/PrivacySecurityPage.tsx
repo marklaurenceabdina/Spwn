@@ -1,6 +1,13 @@
+<<<<<<< HEAD
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
+import { ChevronLeft, Lock, Eye, Download, Trash2, Shield, Key } from "lucide-react";
+import { useApp } from "../../context/AppContext";
+=======
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ChevronLeft, Lock, Eye, Download, Trash2, Shield, Key } from "lucide-react";
+>>>>>>> 99e24f9592138587d512874a69224916a427016c
 
 const ACCENT = "var(--spwn-accent)";
 const BORDER = "var(--spwn-border)";
@@ -60,6 +67,53 @@ function SettingRow({
 
 export function PrivacySecurityPage() {
   const navigate = useNavigate();
+<<<<<<< HEAD
+  const { changePassword, setTwoFactorEnabled, getUserSettings, setProfileVisibility, setReviewPrivacy, exportUserData, deleteAccount } = useApp();
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [currentPwd, setCurrentPwd] = useState("");
+  const [newPwd, setNewPwd] = useState("");
+  const [confirmPwd, setConfirmPwd] = useState("");
+  const [changePwdMessage, setChangePwdMessage] = useState<string | null>(null);
+
+  const [twoFactorEnabledLocal, setTwoFactorEnabledLocal] = useState(false);
+  const [twoFactorSecret, setTwoFactorSecret] = useState<string | null>(null);
+  const [profileVisibilityLocal, setProfileVisibilityLocal] = useState<"public" | "private">("public");
+  const [reviewPrivacyLocal, setReviewPrivacyLocal] = useState<"public" | "private">("public");
+
+  useEffect(() => {
+    const s = getUserSettings();
+    if (s) {
+      setTwoFactorEnabledLocal(s.twoFactorEnabled);
+      setProfileVisibilityLocal((s.profileVisibility as "public" | "private") || "public");
+      setReviewPrivacyLocal((s.reviewPrivacy as "public" | "private") || "public");
+    }
+  }, []);
+
+  const handleChangePassword = () => {
+    setShowChangePassword(true);
+  };
+
+  const handleEnableTwoFactor = () => {
+    // toggle via AppContext; if enabling, receive secret
+    (async () => {
+      const res = await setTwoFactorEnabled(!twoFactorEnabledLocal);
+      if (res.success) {
+        setTwoFactorEnabledLocal(!twoFactorEnabledLocal);
+        if (res.secret) setTwoFactorSecret(res.secret);
+        else if (!twoFactorEnabledLocal) setTwoFactorSecret(null);
+        alert(`Two-factor ${!twoFactorEnabledLocal ? "enabled" : "disabled"}`);
+      } else {
+        alert(res.error || "Failed to update two-factor setting");
+      }
+    })();
+  };
+
+  const handleDownloadData = () => {
+    exportUserData();
+    alert("Your data export has been prepared and is downloading.");
+=======
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleChangePassword = () => {
@@ -72,17 +126,69 @@ export function PrivacySecurityPage() {
 
   const handleDownloadData = () => {
     alert("Your data export is being prepared. You'll receive it via email shortly.");
+>>>>>>> 99e24f9592138587d512874a69224916a427016c
   };
 
   const handleDeleteAccount = () => {
     if (showDeleteConfirm) {
+<<<<<<< HEAD
+      (async () => {
+        const res = await deleteAccount();
+        if (res.success) {
+          alert("Account deleted. You will be redirected to login.");
+          navigate("/");
+        } else {
+          alert(res.error || "Failed to delete account");
+        }
+        setShowDeleteConfirm(false);
+      })();
+=======
       alert("Account deletion initiated. You will be logged out.");
       setShowDeleteConfirm(false);
+>>>>>>> 99e24f9592138587d512874a69224916a427016c
     } else {
       setShowDeleteConfirm(true);
     }
   };
 
+<<<<<<< HEAD
+  const submitChangePassword = async () => {
+    setChangePwdMessage(null);
+    if (!currentPwd || !newPwd) {
+      setChangePwdMessage("Please fill all fields");
+      return;
+    }
+    if (newPwd !== confirmPwd) {
+      setChangePwdMessage("New passwords do not match");
+      return;
+    }
+    const res = await changePassword(currentPwd, newPwd);
+    if (res.success) {
+      setChangePwdMessage("Password updated successfully");
+      setTimeout(() => {
+        setShowChangePassword(false);
+        setCurrentPwd("");
+        setNewPwd("");
+        setConfirmPwd("");
+        setChangePwdMessage(null);
+      }, 1000);
+    } else {
+      setChangePwdMessage(res.error || "Failed to update password");
+    }
+  };
+
+  const onProfileVisibilityChange = (v: "public" | "private") => {
+    setProfileVisibilityLocal(v);
+    setProfileVisibility(v);
+  };
+
+  const onReviewPrivacyChange = (v: "public" | "private") => {
+    setReviewPrivacyLocal(v);
+    setReviewPrivacy(v);
+  };
+
+=======
+>>>>>>> 99e24f9592138587d512874a69224916a427016c
   return (
     <div className="w-full h-full flex flex-col" style={{ background: "var(--spwn-bg)" }}>
       {/* Header */}
@@ -117,7 +223,19 @@ export function PrivacySecurityPage() {
             icon={Shield}
             label="Two-Factor Authentication"
             subtitle="Add an extra layer of security"
+<<<<<<< HEAD
+            right={
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={twoFactorEnabledLocal}
+                  onChange={() => handleEnableTwoFactor()}
+                />
+              </label>
+            }
+=======
             onClick={handleEnableTwoFactor}
+>>>>>>> 99e24f9592138587d512874a69224916a427016c
           />
         </div>
 
@@ -132,13 +250,59 @@ export function PrivacySecurityPage() {
             icon={Eye}
             label="Profile Visibility"
             subtitle="Control who can see your profile"
+<<<<<<< HEAD
+            right={(
+              <select
+                value={profileVisibilityLocal}
+                onChange={(e) => onProfileVisibilityChange(e.target.value as any)}
+                className="text-xs"
+                style={{
+                  color: "var(--spwn-text)",
+                  background: CARD,
+                  border: `1px solid ${BORDER}`,
+                  padding: "4px 8px",
+                  borderRadius: 8,
+                  minWidth: 120,
+                  WebkitAppearance: "menulist",
+                  appearance: "auto",
+                }}
+              >
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+              </select>
+            )}
+=======
             onClick={() => alert("Profile visibility settings would open here")}
+>>>>>>> 99e24f9592138587d512874a69224916a427016c
           />
           <SettingRow
             icon={Lock}
             label="Review Privacy"
             subtitle="Manage who can see your reviews"
+<<<<<<< HEAD
+            right={(
+              <select
+                value={reviewPrivacyLocal}
+                onChange={(e) => onReviewPrivacyChange(e.target.value as any)}
+                className="text-xs"
+                style={{
+                  color: "var(--spwn-text)",
+                  background: CARD,
+                  border: `1px solid ${BORDER}`,
+                  padding: "4px 8px",
+                  borderRadius: 8,
+                  minWidth: 100,
+                  WebkitAppearance: "menulist",
+                  appearance: "auto",
+                }}
+              >
+                <option value="public">Public</option>
+                <option value="private">Private</option>
+              </select>
+            )}
+=======
             onClick={() => alert("Review privacy settings would open here")}
+>>>>>>> 99e24f9592138587d512874a69224916a427016c
           />
         </div>
 
@@ -176,6 +340,48 @@ export function PrivacySecurityPage() {
           </div>
         </div>
       </div>
+<<<<<<< HEAD
+      {/* Change Password Modal */}
+      {showChangePassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.5)" }}>
+          <div className="w-11/12 max-w-md p-4 rounded-lg" style={{ background: "var(--spwn-card)", border: `1px solid ${BORDER}`, color: "var(--spwn-text)" }}>
+            <h2 className="text-lg mb-2" style={{ color: "var(--spwn-text)", fontWeight: 700 }}>Change Password</h2>
+            <div className="flex flex-col gap-2">
+              <input
+                type="password"
+                placeholder="Current password"
+                value={currentPwd}
+                onChange={(e) => setCurrentPwd(e.target.value)}
+                className="w-full px-3 py-2 rounded"
+                style={{ background: CARD, border: `1px solid ${BORDER}`, color: "var(--spwn-text)" }}
+              />
+              <input
+                type="password"
+                placeholder="New password"
+                value={newPwd}
+                onChange={(e) => setNewPwd(e.target.value)}
+                className="w-full px-3 py-2 rounded"
+                style={{ background: CARD, border: `1px solid ${BORDER}`, color: "var(--spwn-text)" }}
+              />
+              <input
+                type="password"
+                placeholder="Confirm new password"
+                value={confirmPwd}
+                onChange={(e) => setConfirmPwd(e.target.value)}
+                className="w-full px-3 py-2 rounded"
+                style={{ background: CARD, border: `1px solid ${BORDER}`, color: "var(--spwn-text)" }}
+              />
+              {changePwdMessage && <p className="text-xs mt-1" style={{ color: "var(--spwn-faint)" }}>{changePwdMessage}</p>}
+              <div className="flex justify-end gap-2 mt-3">
+                <button className="px-3 py-2 rounded" onClick={() => setShowChangePassword(false)} style={{ background: "transparent", border: `1px solid ${BORDER}` }}>Cancel</button>
+                <button className="px-3 py-2 rounded" onClick={submitChangePassword} style={{ background: ACCENT, color: "white" }}>Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+=======
+>>>>>>> 99e24f9592138587d512874a69224916a427016c
     </div>
   );
 }

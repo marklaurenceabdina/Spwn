@@ -13,7 +13,7 @@ export function RatingStars({
     className?: string;
     valueClassName?: string;
 }) {
-    const displayRating = Math.min(5, Math.max(0, rating / 2));
+    const displayRating = Math.min(5, Math.max(0, rating));
 
     return (
         <div className={`flex items-center gap-1 ${className}`} style={{ color: "#f59e0b", fontWeight: 700 }}>

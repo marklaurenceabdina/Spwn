@@ -352,15 +352,24 @@ export function GameDetailPage() {
 
   const handleSubmitReview = () => {
     if (!reviewText.trim() || reviewRating === 0) return;
+
     addReview(game.id, reviewRating, reviewText.trim());
+
     setReviewSubmitted(true);
     setReviewText("");
     setReviewRating(0);
   };
 
-  const avgRatingNum = reviews.length
-    ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
-    : game.rating / 2;
+  const validReviews = reviews.filter((r) => r.rating > 0);
+
+  // ✅ use actual average rating from reviews
+  const avgRatingNum = validReviews.length
+    ? Math.round(
+      (validReviews.reduce((sum, r) => sum + r.rating, 0) /
+        validReviews.length) *
+      10
+    ) / 10
+    : 0;
 
   const tabs: Tab[] = ["overview", "specs", "reviews"];
 
@@ -560,13 +569,15 @@ export function GameDetailPage() {
                 <p className="text-4xl" style={{ color: "var(--spwn-text)", fontWeight: 800 }}>{avgRatingNum.toFixed(1)}</p>
                 <StarRating value={avgRatingNum} size={12} readonly />
                 <p className="text-xs mt-1" style={{ color: "var(--spwn-fainter)" }}>
-                  {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
+                  {validReviews.length} {validReviews.length === 1 ? "review" : "reviews"}
                 </p>
               </div>
               <div className="flex-1 flex flex-col gap-1.5">
                 {[5, 4, 3, 2, 1].map((star) => {
-                  const count = reviews.filter((r) => r.rating === star).length;
-                  const pct = reviews.length ? (count / reviews.length) * 100 : 0;
+                  const count = validReviews.filter((r) => r.rating === star).length;
+                  const pct = validReviews.length
+                    ? (count / validReviews.length) * 100
+                    : 0;
                   return (
                     <div key={star} className="flex items-center gap-2">
                       <span className="text-xs w-2" style={{ color: "var(--spwn-fainter)" }}>{star}</span>

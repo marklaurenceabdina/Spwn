@@ -71,7 +71,6 @@ export function DiscoverPage() {
 
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [selectedGenre, setSelectedGenre] = useState<string>(searchParams.get("genre") ?? "");
-  const [selectedPlatform, setSelectedPlatform] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("popularity");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [showFilters, setShowFilters] = useState(false);
@@ -98,7 +97,6 @@ export function DiscoverPage() {
       );
     }
     if (selectedGenre) list = list.filter((g) => g.genres.includes(selectedGenre));
-    if (selectedPlatform) list = list.filter((g) => g.platform.some((p) => p.includes(selectedPlatform)));
     list.sort((a, b) => {
       if (sortBy === "rating") return b.rating - a.rating;
       if (sortBy === "popularity") return b.popularity - a.popularity;
@@ -106,7 +104,7 @@ export function DiscoverPage() {
       return a.title.localeCompare(b.title);
     });
     return list;
-  }, [query, selectedGenre, selectedPlatform, sortBy, games]);
+  }, [query, selectedGenre, sortBy, games]);
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE);
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -117,7 +115,7 @@ export function DiscoverPage() {
     else addToBacklog(gameId, "want");
   };
 
-  const hasFilters = query || selectedGenre || selectedPlatform || sortBy !== "popularity";
+  const hasFilters = query || selectedGenre || sortBy !== "popularity";
 
   return (
     <div className="flex flex-col" style={{ background: "var(--spwn-bg)" }}>
@@ -200,27 +198,6 @@ export function DiscoverPage() {
               ))}
             </div>
 
-            {/* Platform */}
-            <p className="text-white/40 text-xs mb-2 tracking-widest uppercase" style={{ fontWeight: 700 }}>Platform</p>
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                onClick={() => { setSelectedPlatform(""); setPage(1); }}
-                className="px-3 py-1 rounded-full text-xs transition-all"
-                style={{ background: !selectedPlatform ? "var(--spwn-accent)" : "var(--spwn-glass)", color: !selectedPlatform ? "white" : "var(--spwn-faint)", fontWeight: !selectedPlatform ? 700 : 400 }}
-              >
-                All
-              </button>
-              {["PC", "PlayStation", "Xbox", "Nintendo"].map((p) => (
-                <button
-                  key={p}
-                  onClick={() => { setSelectedPlatform(p === selectedPlatform ? "" : p); setPage(1); }}
-                  className="px-3 py-1 rounded-full text-xs transition-all"
-                  style={{ background: selectedPlatform === p ? "var(--spwn-accent)" : "var(--spwn-glass)", color: selectedPlatform === p ? "white" : "var(--spwn-faint)", fontWeight: selectedPlatform === p ? 700 : 400 }}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
           </div>
         )}
 
@@ -255,7 +232,7 @@ export function DiscoverPage() {
             <Search size={32} style={{ color: "var(--spwn-fainter)" }} />
             <p className="text-sm text-center" style={{ color: "var(--spwn-faint)" }}>No games match your search.<br />Try different keywords or filters.</p>
             <button
-              onClick={() => { setQuery(""); setSelectedGenre(""); setSelectedPlatform(""); setSortBy("popularity"); }}
+              onClick={() => { setQuery(""); setSelectedGenre(""); setSortBy("popularity"); }}
               className="px-4 py-2 rounded-lg text-xs"
               style={{ background: "rgba(0,136,221,0.15)", color: "var(--spwn-accent)", fontWeight: 600 }}
             >

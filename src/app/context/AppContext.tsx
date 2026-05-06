@@ -159,8 +159,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setGames((prevGames) =>
       prevGames.map((game) => {
-        const gameReviews = reviews.filter((r) => r.gameId === game.id);
-        if (!gameReviews.length) return game;
+        // ✅ ignore default 0-star reviews
+        const gameReviews = reviews.filter(
+          (r) => r.gameId === game.id && r.rating > 0
+        );
+
+        // ✅ if no valid reviews, reset rating/review count
+        if (!gameReviews.length) {
+          if (game.rating === 0 && game.reviewCount === 0) {
+            return game;
+          }
+
+          return {
+            ...game,
+            rating: 0,
+            reviewCount: 0,
+          };
+        }
 
         const avg =
           gameReviews.reduce((sum, r) => sum + r.rating, 0) /
@@ -473,7 +488,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   function getReviewsForGame(gameId: string) {
-    return reviews.filter((r) => r.gameId === gameId);
+    return reviews.filter(
+      (r) => r.gameId === gameId && r.rating > 0
+    );
   }
 
   function hasReviewedGame(gameId: string) {

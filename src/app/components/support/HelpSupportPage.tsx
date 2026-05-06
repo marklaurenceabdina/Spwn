@@ -129,11 +129,7 @@ export function HelpSupportPage() {
             <button
               className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all active:opacity-70"
               style={{ background: CARD, border: `1px solid ${BORDER}` }}
-<<<<<<< HEAD
               onClick={() => window.open("https://discord.gg/spwn", "_blank")}
-=======
-              onClick={() => alert("Discord community link would open here")}
->>>>>>> 99e24f9592138587d512874a69224916a427016c
             >
               <MessageSquare size={16} style={{ color: ACCENT }} />
               <div className="flex-1 text-left">

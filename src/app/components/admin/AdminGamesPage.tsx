@@ -9,10 +9,7 @@ export function AdminGamesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-<<<<<<< HEAD
   const [featuredGameId, setFeaturedGameId] = useState<string | null>(games.find((g) => g.featured)?.id || null);
-=======
->>>>>>> 99e24f9592138587d512874a69224916a427016c
 
   const filteredGames = games.filter((g) =>
     g.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -48,7 +45,6 @@ export function AdminGamesPage() {
       <div className="px-4 pt-4 pb-4">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl" style={{ fontWeight: 800, color: "var(--spwn-text)" }}>Games Management</h1>
-<<<<<<< HEAD
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsCreating(true)}
@@ -59,16 +55,6 @@ export function AdminGamesPage() {
               New Game
             </button>
           </div>
-=======
-          <button
-            onClick={() => setIsCreating(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm transition-all"
-            style={{ background: "var(--spwn-accent)", fontWeight: 700 }}
-          >
-            <Plus size={16} />
-            New Game
-          </button>
->>>>>>> 99e24f9592138587d512874a69224916a427016c
         </div>
 
         {/* Search */}
@@ -84,7 +70,6 @@ export function AdminGamesPage() {
             color: "var(--spwn-text)",
           }}
         />
-<<<<<<< HEAD
 
         {/* Featured Game Selector */}
         <div className="mt-4">
@@ -120,8 +105,6 @@ export function AdminGamesPage() {
             ))}
           </select>
         </div>
-=======
->>>>>>> 99e24f9592138587d512874a69224916a427016c
       </div>
 
       {/* Games List */}
@@ -139,7 +122,6 @@ export function AdminGamesPage() {
             >
               {/* Game row */}
               <div className="p-3 flex items-center gap-3">
-<<<<<<< HEAD
 
                 {/* IMAGE + FEATURED BADGE */}
                 <div className="relative w-12 h-12 shrink-0">
@@ -167,47 +149,29 @@ export function AdminGamesPage() {
                   )}
                 </div>
 
-=======
-                <img src={game.image} alt={game.title} className="w-12 h-12 rounded object-cover shrink-0" />
->>>>>>> 99e24f9592138587d512874a69224916a427016c
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold truncate" style={{ color: "var(--spwn-text)" }}>{game.title}</p>
                   <p className="text-xs" style={{ color: "var(--spwn-faint)" }}>{game.developer}</p>
                 </div>
-<<<<<<< HEAD
 
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => setEditingId(editingId === game.id ? null : game.id)}
                     className="p-2 rounded"
-=======
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => setEditingId(editingId === game.id ? null : game.id)}
-                    className="p-2 rounded transition-all"
->>>>>>> 99e24f9592138587d512874a69224916a427016c
                     style={{ background: "var(--spwn-glass)" }}
                   >
                     <Edit size={14} style={{ color: "var(--spwn-accent)" }} />
                   </button>
                   <button
                     onClick={() => handleDeleteGame(game.id)}
-<<<<<<< HEAD
                     className="p-2 rounded"
-=======
-                    className="p-2 rounded transition-all"
->>>>>>> 99e24f9592138587d512874a69224916a427016c
                     style={{ background: "var(--spwn-glass)" }}
                   >
                     <Trash2 size={14} style={{ color: "#ff6b6b" }} />
                   </button>
                   <button
                     onClick={() => setExpandedId(expandedId === game.id ? null : game.id)}
-<<<<<<< HEAD
                     className="p-2 rounded"
-=======
-                    className="p-2 rounded transition-all"
->>>>>>> 99e24f9592138587d512874a69224916a427016c
                     style={{ background: "var(--spwn-glass)" }}
                   >
                     <ChevronDown
@@ -283,17 +247,12 @@ function GameEditForm({
   const [rating, setRating] = useState(game.rating.toString());
   const [year, setYear] = useState(game.year.toString());
   const [description, setDescription] = useState(game.description);
-<<<<<<< HEAD
   const [longDescription, setLongDescription] = useState(game.longDescription || "");
   const [image, setImage] = useState(game.image || "");
   const [tags, setTags] = useState((game.tags || []).join(", "));
   const [genresString, setGenresString] = useState((game.genres || []).join(", "));
   const [minSpecs, setMinSpecs] = useState(game.minSpecs || { os: "", cpu: "", ram: "", gpu: "", storage: "" });
   const [recSpecs, setRecSpecs] = useState(game.recSpecs || { os: "", cpu: "", ram: "", gpu: "", storage: "" });
-=======
-  const [image, setImage] = useState(game.image || "");
-  const [tags, setTags] = useState((game.tags || []).join(", "));
->>>>>>> 99e24f9592138587d512874a69224916a427016c
 
   return (
     <div className="px-3 pb-3 border-t" style={{ borderColor: "var(--spwn-border)" }}>
@@ -350,7 +309,6 @@ function GameEditForm({
           }}
           placeholder="Description"
         />
-<<<<<<< HEAD
         <textarea
           value={longDescription}
           onChange={(e) => setLongDescription(e.target.value)}
@@ -363,8 +321,6 @@ function GameEditForm({
           }}
           placeholder="Overview (long description)"
         />
-=======
->>>>>>> 99e24f9592138587d512874a69224916a427016c
         <input
           type="text"
           value={image}
@@ -389,7 +345,6 @@ function GameEditForm({
           }}
           placeholder="Tags (comma separated)"
         />
-<<<<<<< HEAD
         <input
           type="text"
           value={genresString}
@@ -490,8 +445,6 @@ function GameEditForm({
             />
           </div>
         </div>
-=======
->>>>>>> 99e24f9592138587d512874a69224916a427016c
         <div className="flex gap-2 pt-2">
           <button
             onClick={() => {
@@ -500,17 +453,12 @@ function GameEditForm({
                 year: parseInt(year),
                 rating: parseFloat(rating),
                 description,
-<<<<<<< HEAD
                 longDescription,
                 image,
                 tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
                 genres: genresString.split(",").map((g) => g.trim()).filter(Boolean),
                 minSpecs,
                 recSpecs,
-=======
-                image,
-                tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
->>>>>>> 99e24f9592138587d512874a69224916a427016c
               });
             }}
             className="flex-1 px-3 py-2 rounded text-sm text-white"
@@ -547,24 +495,15 @@ function GameCreateForm({
     developer: "",
     publisher: "",
     year: new Date().getFullYear(),
-<<<<<<< HEAD
     genres: [],
     description: "",
     longDescription: "",
     image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400",
     rating: 0,
-=======
-    genres: ["Action"],
-    description: "",
-    longDescription: "",
-    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400",
-    rating: 8,
->>>>>>> 99e24f9592138587d512874a69224916a427016c
     reviewCount: 0,
     tags: [],
     platform: ["PC"],
     minSpecs: {
-<<<<<<< HEAD
       os: "",
       cpu: "",
       ram: "",
@@ -584,25 +523,6 @@ function GameCreateForm({
   });
   const [tagsString, setTagsString] = useState((formData.tags || []).join(", "));
   const [genresString, setGenresString] = useState((formData.genres || []).join(", "));
-=======
-      os: "Windows 10 64-bit",
-      cpu: "Intel Core i5",
-      ram: "8 GB",
-      gpu: "NVIDIA GTX 960",
-      storage: "30 GB",
-    },
-    recSpecs: {
-      os: "Windows 10 64-bit",
-      cpu: "Intel Core i7",
-      ram: "16 GB",
-      gpu: "NVIDIA GTX 1060",
-      storage: "30 GB SSD",
-    },
-    trailerVideoId: "",
-    popularity: 50,
-  });
-  const [tagsString, setTagsString] = useState((formData.tags || []).join(", "));
->>>>>>> 99e24f9592138587d512874a69224916a427016c
 
   const handleSubmit = () => {
     if (!formData.title || !formData.developer) {
@@ -611,13 +531,9 @@ function GameCreateForm({
     }
     const payload = {
       ...formData,
-<<<<<<< HEAD
       featured: formData.featured,
       tags: tagsString.split(",").map((t) => t.trim()).filter(Boolean),
       genres: genresString.split(",").map((g) => g.trim()).filter(Boolean),
-=======
-      tags: tagsString.split(",").map((t) => t.trim()).filter(Boolean),
->>>>>>> 99e24f9592138587d512874a69224916a427016c
     } as Omit<Game, "id">;
     onSave(payload);
   };
@@ -718,7 +634,6 @@ function GameCreateForm({
               minHeight: "80px",
             }}
           />
-<<<<<<< HEAD
           <textarea
             placeholder="Overview (long description)"
             value={formData.longDescription}
@@ -731,8 +646,6 @@ function GameCreateForm({
               minHeight: "120px",
             }}
           />
-=======
->>>>>>> 99e24f9592138587d512874a69224916a427016c
           <input
             type="text"
             placeholder="Overview Image URL"
@@ -757,7 +670,6 @@ function GameCreateForm({
               color: "var(--spwn-text)",
             }}
           />
-<<<<<<< HEAD
           <input
             type="text"
             placeholder="Genres (comma separated)"
@@ -866,8 +778,6 @@ function GameCreateForm({
               />
             </div>
           </div>
-=======
->>>>>>> 99e24f9592138587d512874a69224916a427016c
           <div className="flex gap-2 pt-2">
             <button
               onClick={handleSubmit}

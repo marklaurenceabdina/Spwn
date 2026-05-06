@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-@import './fonts.css';
-@import './tailwind.css';
-@import './theme.css';
-=======
-@import './fonts.css';
-@import './tailwind.css';
-@import './theme.css';
->>>>>>> 99e24f9592138587d512874a69224916a427016c
+    @import './fonts.css';
+    @import './tailwind.css';
+    @import './theme.css';

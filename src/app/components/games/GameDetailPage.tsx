@@ -555,6 +555,20 @@ export function GameDetailPage() {
                 ))}
               </div>
             </div>
+            <div>
+              <p className="text-xs mb-2 tracking-widest uppercase" style={{ color: "var(--spwn-faint)", fontWeight: 700 }}>Genre</p>
+              <div className="flex flex-wrap gap-2">
+                {game.genres.map((genre) => (
+                  <span
+                    key={genre}
+                    className="text-xs px-2.5 py-1 rounded-full"
+                    style={{ background: "var(--spwn-glass)", color: "var(--spwn-muted)", border: "1px solid var(--spwn-border)" }}
+                  >
+                    {genre}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 

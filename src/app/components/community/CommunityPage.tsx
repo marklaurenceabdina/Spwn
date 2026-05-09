@@ -82,7 +82,7 @@ function relativeTimeFromDate(dateStr?: string) {
   return "Just now";
 }
 
-function mapReviewsToPosts(reviews: any[], games: any[], user: any, getReviewPrivacy: (username: string) => "public" | "private"): Post[] {
+function mapReviewsToPosts(reviews: any[], games: any[], getReviewPrivacy: (username: string) => "public" | "private"): Post[] {
   // Filter reviews to only show PUBLIC reviews (not private ones)
   const publicReviews = reviews.filter((r) => {
     const reviewerPrivacy = getReviewPrivacy(r.username);
@@ -182,7 +182,15 @@ function GameTagPicker({
                 <img src={game.image} alt={game.title} className="w-8 h-8 rounded-lg object-cover shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm truncate" style={{ color: "var(--spwn-text)", fontWeight: 600 }}>{game.title}</p>
-                  <p className="text-xs truncate" style={{ color: "var(--spwn-faint)" }}>{game.year} · {game.genres[0]}</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs" style={{ color: "var(--spwn-faint)" }}>{game.year}</span>
+                    <span
+                      className="text-xs px-2.5 py-1 rounded-full"
+                      style={{ background: "var(--spwn-glass)", color: "var(--spwn-muted)", border: "1px solid var(--spwn-border)" }}
+                    >
+                      {game.genres[0]}
+                    </span>
+                  </div>
                 </div>
               </button>
             ))}
@@ -372,17 +380,16 @@ function PostCard({
           {post.gameId ? (
             <button
               onClick={() => navigate(`/app/game/${post.gameId}`)}
-              className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
-              style={{ background: `${post.gameTagColor}20`, color: post.gameTagColor, border: `1px solid ${post.gameTagColor}40`, fontWeight: 600 }}
+              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full"
+              style={{ background: `${post.gameTagColor}15`, color: post.gameTagColor, border: `1px solid ${post.gameTagColor}40`, fontWeight: 600 }}
             >
               <GamepadIcon size={10} />
               {post.gameTag}
-              <ChevronRight size={10} />
             </button>
           ) : (
             <span
-              className="text-xs px-2 py-0.5 rounded-full"
-              style={{ background: `${post.gameTagColor}20`, color: post.gameTagColor, border: `1px solid ${post.gameTagColor}40`, fontWeight: 600 }}
+              className="text-xs px-2.5 py-1 rounded-full"
+              style={{ background: `${post.gameTagColor}15`, color: post.gameTagColor, border: `1px solid ${post.gameTagColor}40`, fontWeight: 600 }}
             >
               {post.gameTag}
             </span>
@@ -500,7 +507,7 @@ export function CommunityPage() {
   const { user, reviews, games, getReviewPrivacyByUsername } = useApp();
   const [postSubject, setPostSubject] = useState("");
   const [postText, setPostText] = useState("");
-  const [posts, setPosts] = useState<Post[]>(() => mapReviewsToPosts(reviews, games, user, getReviewPrivacyByUsername));
+  const [posts, setPosts] = useState<Post[]>(() => mapReviewsToPosts(reviews, games, getReviewPrivacyByUsername));
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
 
   const topContributors = useMemo(() => {
@@ -641,15 +648,13 @@ export function CommunityPage() {
 
             {selectedGame && (
               <div
-                className="flex items-center gap-2 px-3 py-2 rounded-lg mb-2"
-                style={{ background: "rgba(0,136,221,0.1)", border: "1px solid rgba(0,136,221,0.25)" }}
+                className="inline-flex items-center gap-2 text-xs px-2.5 py-1 rounded-full mb-2"
+                style={{ background: "rgba(0,136,221,0.12)", border: "1px solid rgba(0,136,221,0.25)", color: "var(--spwn-accent)", fontWeight: 600 }}
               >
                 <Tag size={12} style={{ color: "var(--spwn-accent)" }} />
-                <span className="text-xs flex-1" style={{ color: "var(--spwn-accent)", fontWeight: 600 }}>
-                  {selectedGame.title}
-                </span>
-                <button onClick={() => setSelectedGame(null)}>
-                  <X size={12} style={{ color: "var(--spwn-accent)" }} />
+                <span className="truncate">{selectedGame.title}</span>
+                <button onClick={() => setSelectedGame(null)} style={{ color: "var(--spwn-accent)" }}>
+                  <X size={12} />
                 </button>
               </div>
             )}

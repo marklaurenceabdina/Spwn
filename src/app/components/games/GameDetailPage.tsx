@@ -340,6 +340,7 @@ export function GameDetailPage() {
   const {
     user,
     getReviewsForGame,
+    getVisibleReviewsForGame,
     hasReviewedGame,
     addReview,
     editReview,
@@ -367,7 +368,8 @@ export function GameDetailPage() {
     );
   }
 
-  const reviews = getReviewsForGame(game.id);
+  const allReviews = getReviewsForGame(game.id);
+  const visibleReviews = getVisibleReviewsForGame(game.id);
   const alreadyReviewed = hasReviewedGame(game.id);
   const userRating = getUserRating(game.id);
 
@@ -381,9 +383,9 @@ export function GameDetailPage() {
     setReviewRating(0);
   };
 
-  const validReviews = reviews.filter((r) => r.rating > 0);
+  const validReviews = allReviews.filter((r) => r.rating > 0);
 
-  // ✅ use actual average rating from reviews
+  // ✅ use actual average rating from ALL reviews (including private ones)
   const avgRatingNum = validReviews.length
     ? Math.round(
       (validReviews.reduce((sum, r) => sum + r.rating, 0) /
@@ -465,7 +467,7 @@ export function GameDetailPage() {
           </div>
           <div>
             <p className="text-xs" style={{ color: "var(--spwn-faint)" }}>
-              {reviews.length.toLocaleString()} {reviews.length === 1 ? "review" : "reviews"}
+              {allReviews.length.toLocaleString()} {allReviews.length === 1 ? "review" : "reviews"}
             </p>
             <StarRating value={avgRatingNum} size={11} readonly />
           </div>
@@ -516,9 +518,9 @@ export function GameDetailPage() {
             }}
           >
             {tab === "reviews"
-              ? reviews.length === 1
+              ? allReviews.length === 1
                 ? `Review (1)`
-                : `Reviews (${reviews.length})`
+                : `Reviews (${allReviews.length})`
               : tab === "specs"
                 ? "Specs (Mobile)"
                 : tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -669,13 +671,13 @@ export function GameDetailPage() {
 
             {/* Review list */}
             <div className="flex flex-col gap-3">
-              {reviews.length === 0 ? (
+              {visibleReviews.length === 0 ? (
                 <div className="text-center py-8">
                   <Star size={28} style={{ color: "var(--spwn-fainter)", margin: "0 auto 8px" }} />
-                  <p className="text-sm" style={{ color: "var(--spwn-faint)" }}>No reviews yet. Be the first!</p>
+                  <p className="text-sm" style={{ color: "var(--spwn-faint)" }}>No public reviews yet. Be the first!</p>
                 </div>
               ) : (
-                reviews.map((review) => (
+                visibleReviews.map((review) => (
                   <ReviewCard
                     key={review.id}
                     review={review}

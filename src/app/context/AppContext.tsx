@@ -16,6 +16,8 @@ interface StoredUser {
   passwordHash: string;
   role: "user" | "admin";
   createdAt: string;
+  twoFactorEnabled?: boolean;
+  twoFactorSecret?: string;
   profileVisibility?: "public" | "private";
   reviewPrivacy?: "public" | "private";
 }
@@ -68,9 +70,13 @@ interface AppState {
   getGameById: (gameId: string) => Game | undefined;
   // Account management
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
-  getUserSettings: () => { profileVisibility: "public" | "private"; reviewPrivacy: "public" | "private" } | null;
+  setTwoFactorEnabled: (enabled: boolean) => Promise<{ success: boolean; secret?: string; error?: string }>;
+  getUserSettings: () => { twoFactorEnabled: boolean; profileVisibility: "public" | "private"; reviewPrivacy: "public" | "private" } | null;
+  getReviewPrivacyByUsername: (username: string) => "public" | "private";
+  getVisibleReviewsForGame: (gameId: string) => Review[];
   setProfileVisibility: (visibility: "public" | "private") => void;
   setReviewPrivacy: (privacy: "public" | "private") => void;
+  exportUserData: () => void;
   deleteAccount: () => Promise<{ success: boolean; error?: string }>;
 }
 
@@ -323,15 +329,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /**
    * Enable/disable a simple two-factor flag and optionally return a secret when enabling.
    */
+  async function setTwoFactorEnabled(enabled: boolean): Promise<{ success: boolean; secret?: string; error?: string }> {
+    if (!user) return { success: false, error: "Not authenticated" };
+    const users = loadFromStorage<StoredUser[]>("spwn_users", []);
+    const stored = users.find((u) => u.email === user.email);
+    if (!stored) return { success: false, error: "User not found" };
+    if (enabled) {
+      // generate a simple secret (hex) for demonstration
+      const arr = new Uint8Array(10);
+      crypto.getRandomValues(arr);
+      const secret = Array.from(arr).map((b) => b.toString(16).padStart(2, "0")).join("");
+      stored.twoFactorEnabled = true;
+      stored.twoFactorSecret = secret;
+      saveToStorage("spwn_users", users);
+      return { success: true, secret };
+    } else {
+      stored.twoFactorEnabled = false;
+      delete stored.twoFactorSecret;
+      saveToStorage("spwn_users", users);
+      return { success: true };
+    }
+  }
+
   function getUserSettings() {
     if (!user) return null;
     const users = loadFromStorage<StoredUser[]>("spwn_users", []);
     const stored = users.find((u) => u.email === user.email);
     if (!stored) return null;
     return {
+      twoFactorEnabled: !!stored.twoFactorEnabled,
       profileVisibility: (stored as any).profileVisibility === "friends" ? "private" : stored.profileVisibility || "public",
       reviewPrivacy: stored.reviewPrivacy || "public",
     };
+  }
+
+  function getReviewPrivacyByUsername(username: string): "public" | "private" {
+    const users = loadFromStorage<StoredUser[]>("spwn_users", []);
+    const stored = users.find((u) => u.username === username);
+    if (!stored) return "public";
+    return stored.reviewPrivacy || "public";
   }
 
   // Featured is now stored per-game; use `updateGame` to set `featured`.
@@ -352,6 +388,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!stored) return;
     stored.reviewPrivacy = privacy;
     saveToStorage("spwn_users", users);
+  }
+
+  function exportUserData() {
+    if (!user) return;
+    const userReviews = reviews.filter((r) => r.username === user.username);
+    const data = {
+      user,
+      reviews: userReviews,
+      games,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `spwn-data-${user.username}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   async function deleteAccount(): Promise<{ success: boolean; error?: string }> {
@@ -442,9 +497,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   function getReviewsForGame(gameId: string) {
-    return reviews.filter(
-      (r) => r.gameId === gameId && r.rating > 0
-    );
+    // Return ALL reviews for this game so stars count toward average
+    return reviews.filter((r) => r.gameId === gameId && r.rating > 0);
+  }
+
+  function getVisibleReviewsForGame(gameId: string) {
+    // Return only publicly viewable review text (not ratings)
+    return reviews.filter((r) => {
+      // Only return reviews for this game
+      if (r.gameId !== gameId) return false;
+
+      // Only show reviews with rating > 0
+      if (r.rating <= 0) return false;
+
+      // Get the reviewer's privacy setting
+      const reviewerPrivacy = getReviewPrivacyByUsername(r.username);
+
+      // If review is public, show it to everyone
+      if (reviewerPrivacy === "public") return true;
+
+      // If review is private, only show it to the reviewer themselves
+      if (reviewerPrivacy === "private" && user && r.username === user.username) return true;
+
+      // Otherwise, don't show the private review
+      return false;
+    });
   }
 
   function hasReviewedGame(gameId: string) {
@@ -516,9 +593,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteGame,
         getGameById,
         changePassword,
+        setTwoFactorEnabled,
         getUserSettings,
+        getReviewPrivacyByUsername,
+        getVisibleReviewsForGame,
         setProfileVisibility,
         setReviewPrivacy,
+        exportUserData,
         deleteAccount,
       }}
     >

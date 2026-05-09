@@ -82,8 +82,14 @@ function relativeTimeFromDate(dateStr?: string) {
   return "Just now";
 }
 
-function mapReviewsToPosts(reviews: any[], games: any[]): Post[] {
-  const byDate = [...reviews].sort((a, b) => {
+function mapReviewsToPosts(reviews: any[], games: any[], user: any, getReviewPrivacy: (username: string) => "public" | "private"): Post[] {
+  // Filter reviews to only show PUBLIC reviews (not private ones)
+  const publicReviews = reviews.filter((r) => {
+    const reviewerPrivacy = getReviewPrivacy(r.username);
+    return reviewerPrivacy === "public";
+  });
+
+  const byDate = [...publicReviews].sort((a, b) => {
     const da = new Date(a.date).getTime() || 0;
     const db = new Date(b.date).getTime() || 0;
     return db - da;
@@ -491,15 +497,21 @@ function PostCard({
 // ── Main Page ──────────────────────────────────────────────────────────────
 export function CommunityPage() {
   const navigate = useNavigate();
-  const { user, reviews, games } = useApp();
+  const { user, reviews, games, getReviewPrivacyByUsername } = useApp();
   const [postSubject, setPostSubject] = useState("");
   const [postText, setPostText] = useState("");
-  const [posts, setPosts] = useState<Post[]>(() => mapReviewsToPosts(reviews, games));
+  const [posts, setPosts] = useState<Post[]>(() => mapReviewsToPosts(reviews, games, user, getReviewPrivacyByUsername));
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
 
   const topContributors = useMemo(() => {
+    // Only count public reviews in the leaderboard
+    const publicReviews = reviews.filter((r: any) => {
+      const reviewerPrivacy = getReviewPrivacyByUsername(r.username);
+      return reviewerPrivacy === "public";
+    });
+
     const agg: Record<string, { username: string; points: number; reviews: number }> = {};
-    reviews.forEach((r: any) => {
+    publicReviews.forEach((r: any) => {
       const name = r.username || "Unknown";
       if (!agg[name]) agg[name] = { username: name, points: 0, reviews: 0 };
       agg[name].reviews += 1;
@@ -515,7 +527,7 @@ export function CommunityPage() {
       username: c.username,
       points: c.points || c.reviews * 10,
     }));
-  }, [reviews]);
+  }, [reviews, getReviewPrivacyByUsername]);
   const [showGamePicker, setShowGamePicker] = useState(false);
   const [selectedGame, setSelectedGame] = useState<{ id: string; title: string } | null>(null);
   const [activeCommentPost, setActiveCommentPost] = useState<Post | null>(null);

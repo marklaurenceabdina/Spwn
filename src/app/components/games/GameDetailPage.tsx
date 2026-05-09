@@ -24,6 +24,27 @@ import {
 
 type Tab = "overview" | "specs" | "reviews";
 
+// ── YouTube Video ID Extractor ──────────────────────────────────────────────
+function extractYouTubeVideoId(url: string): string {
+  if (!url) return "";
+
+  // Handle different YouTube URL formats
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /youtube\.com\/v\/([^&\n?#]+)/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+
+  // If it's already just the video ID (no URL), return as is
+  return url;
+}
+
 // ── Star Rating ────────────────────────────────────────────────────────────
 function StarRating({
   value,
@@ -396,20 +417,22 @@ export function GameDetailPage() {
         {/* Backlog button replaces heart */}
         <BacklogButton gameId={game.id} />
 
-        <button
-          onClick={() => setShowTrailer(true)}
-          className="absolute bottom-5 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs"
-          style={{
-            color: darkMode ? "white" : "#0d1117",
-            background: darkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.8)",
-            backdropFilter: "blur(8px)",
-            border: darkMode ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(0,0,0,0.15)",
-            fontWeight: 600
-          }}
-        >
-          <Play size={11} fill={darkMode ? "white" : "#0d1117"} stroke="none" />
-          Watch Trailer
-        </button>
+        {game.trailerVideoId && (
+          <button
+            onClick={() => setShowTrailer(true)}
+            className="absolute bottom-5 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs"
+            style={{
+              color: darkMode ? "white" : "#0d1117",
+              background: darkMode ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.8)",
+              backdropFilter: "blur(8px)",
+              border: darkMode ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(0,0,0,0.15)",
+              fontWeight: 600
+            }}
+          >
+            <Play size={11} fill={darkMode ? "white" : "#0d1117"} stroke="none" />
+            Watch Trailer
+          </button>
+        )}
       </div>
 
       {/* Title block */}
@@ -456,15 +479,23 @@ export function GameDetailPage() {
 
         {/* Platforms */}
         <div className="flex flex-wrap gap-1.5 mt-3">
-          {game.platform.map((p) => (
-            <span
-              key={p}
-              className="text-xs px-2 py-0.5 rounded"
-              style={{ background: "var(--spwn-glass)", color: "var(--spwn-faint)", border: "1px solid var(--spwn-border)" }}
-            >
-              {p}
-            </span>
-          ))}
+          {game.platform
+            .sort((a, b) => {
+              const isAMobile = /android|ios/i.test(a);
+              const isBMobile = /android|ios/i.test(b);
+              if (isAMobile && !isBMobile) return -1;
+              if (!isAMobile && isBMobile) return 1;
+              return 0;
+            })
+            .map((p) => (
+              <span
+                key={p}
+                className="text-xs px-2 py-0.5 rounded"
+                style={{ background: "var(--spwn-glass)", color: "var(--spwn-faint)", border: "1px solid var(--spwn-border)" }}
+              >
+                {p}
+              </span>
+            ))}
         </div>
       </div>
 
@@ -676,7 +707,7 @@ export function GameDetailPage() {
             </div>
             <div style={{ position: "relative", paddingBottom: "56.25%" }}>
               <iframe
-                src={`https://www.youtube.com/embed/${game.trailerVideoId}?autoplay=1&rel=0`}
+                src={`https://www.youtube.com/embed/${extractYouTubeVideoId(game.trailerVideoId)}?autoplay=1&rel=0`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="absolute inset-0 w-full h-full"

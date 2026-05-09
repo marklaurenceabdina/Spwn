@@ -70,7 +70,7 @@ export const GAMES: Game[] = [
     longDescription: "Path of Exile 2 is a complete reimagining of the action RPG genre that expands on its predecessor with an entirely new campaign across Wraeclast's dark continents. Featuring 12 character classes, a reimagined skill gem system, and endgame depth that rivals or exceeds the genre's best, PoE2 is a colossal achievement in free-to-play game design.",
     image: IMG.dark, rating: 0, reviewCount: 0,
     tags: ["ARPG", "Hack and Slash", "Free-to-Play", "Deep", "Co-op"],
-    platform: ["PC", "PlayStation 5", "Xbox Series X/S"],
+    platform: ["Android", "iOS"],
     minSpecs: HIGH, recSpecs: HIGH_R, trailerVideoId: "iqysmS4lxwQ", popularity: 87,
   },
   {
@@ -80,7 +80,7 @@ export const GAMES: Game[] = [
     longDescription: "Portal 2 is widely regarded as the perfect puzzle game. Its escalating challenges introduce new mechanics — gels, aerial faith plates, light bridges — with meticulous pacing, while its writing is among gaming's finest. The two-player co-op campaign, featuring robots Atlas and P-Body, adds an entirely separate and equally brilliant puzzle experience.",
     image: IMG.tech, rating: 0, reviewCount: 0,
     tags: ["Puzzle", "Comedy", "Co-op", "Valve", "Classic"],
-    platform: ["PC", "PlayStation 3", "Xbox 360"],
+    platform: ["Android", "iOS"],
     minSpecs: LOW, recSpecs: LOW_R, trailerVideoId: "iqysmS4lxwQ", popularity: 95,
   },
   {
@@ -90,7 +90,7 @@ export const GAMES: Game[] = [
     longDescription: "BioShock Infinite offers one of gaming's most ambitious narratives — a story about American exceptionalism, racism, and alternate realities wrapped in a spectacular first-person shooter. Elizabeth's companion AI is a technical and design marvel, while the city of Columbia remains one of the medium's most detailed and lovingly crafted environments.",
     image: IMG.city, rating: 0, reviewCount: 0,
     tags: ["FPS", "Story Rich", "Alternate History", "Companion", "Atmospheric"],
-    platform: ["PC", "PlayStation 3/4", "Xbox 360/One"],
+    platform: ["Android", "iOS"],
     minSpecs: LOW, recSpecs: MID, trailerVideoId: "iqysmS4lxwQ", popularity: 86,
   },
   {
@@ -100,7 +100,7 @@ export const GAMES: Game[] = [
     longDescription: "Dishonored 2 refines everything that made its predecessor great while expanding it considerably with two fully distinct playstyles and some of gaming's most inventive level design. The Clockwork Mansion and A Crack in the Slab are particularly extraordinary levels that use the game's time-manipulation and environmental mechanics in breathtaking ways.",
     image: IMG.citynight, rating: 0, reviewCount: 0,
     tags: ["Stealth", "Immersive Sim", "Powers", "Victorian", "Creative"],
-    platform: ["PC", "PlayStation 4", "Xbox One"],
+    platform: ["Android", "iOS"],
     minSpecs: MID, recSpecs: MID_R, trailerVideoId: "iqysmS4lxwQ", popularity: 82,
   },
   {
@@ -110,7 +110,7 @@ export const GAMES: Game[] = [
     longDescription: "Half-Life: Alyx is the most compelling argument for virtual reality gaming ever made. Valve's meticulous design attention — the physics interactions, enemy AI, puzzle design, and environmental storytelling — make it feel like the next leap in interactive entertainment. Even for those without VR, watching it played is breathtaking.",
     image: IMG.tech, rating: 0, reviewCount: 0,
     tags: ["VR", "FPS", "Sci-Fi", "Valve", "Immersive"],
-    platform: ["PC (VR Required)"],
+    platform: ["Android", "iOS"],
     minSpecs: HIGH, recSpecs: HIGH_R, trailerVideoId: "iqysmS4lxwQ", popularity: 88,
   },
 ];

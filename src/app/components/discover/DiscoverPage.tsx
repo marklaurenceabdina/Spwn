@@ -10,6 +10,13 @@ import { RatingStars } from "../ui/RatingStars";
 type SortKey = "rating" | "popularity" | "year" | "title";
 type ViewMode = "grid" | "list";
 
+function getCardPlatform(game: Game) {
+  const mobile = game.platform.find((platform) => /android|ios/i.test(platform));
+  if (mobile) return mobile;
+  const nonPC = game.platform.find((platform) => platform !== "PC");
+  return nonPC ?? game.platform[0] ?? "";
+}
+
 function GameGridCard({ game, onNavigate, wishlisted, onToggleWishlist }: { game: Game; onNavigate: () => void; wishlisted: boolean; onToggleWishlist: (e: React.MouseEvent) => void }) {
   return (
     <div
@@ -33,7 +40,18 @@ function GameGridCard({ game, onNavigate, wishlisted, onToggleWishlist }: { game
       </div>
       <div className="p-2.5">
         <p className="text-xs truncate" style={{ fontWeight: 600, color: "var(--spwn-text)" }}>{game.title}</p>
-        <p className="text-xs mt-0.5" style={{ color: "var(--spwn-faint)" }}>{game.year} • {game.genres[0]}</p>
+        <p className="text-xs mt-0.5" style={{ color: "var(--spwn-faint)" }}>{game.year} • {getCardPlatform(game)}</p>
+        <div className="flex flex-wrap gap-1 mt-2">
+          {game.platform.map((platform) => (
+            <span
+              key={platform}
+              className="text-[10px] px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(255,255,255,0.08)", color: "var(--spwn-faint)", border: "1px solid var(--spwn-border)" }}
+            >
+              {platform}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -49,8 +67,20 @@ function GameListCard({ game, onNavigate, wishlisted, onToggleWishlist }: { game
       <img src={game.image} alt={game.title} className="w-14 h-14 rounded-lg object-cover shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-sm truncate" style={{ fontWeight: 600, color: "var(--spwn-text)" }}>{game.title}</p>
-        <p className="text-xs mt-0.5" style={{ color: "var(--spwn-faint)" }}>{game.year} • {game.developer}</p>
+        <p className="text-xs mt-0.5" style={{ color: "var(--spwn-faint)" }}>{game.year} • {getCardPlatform(game)}</p>
+        <p className="text-xs mt-0.5" style={{ color: "var(--spwn-fainter)" }}>{game.developer}</p>
         <p className="text-xs mt-0.5 truncate" style={{ color: "var(--spwn-fainter)" }}>{game.genres.join(" • ")}</p>
+        <div className="flex flex-wrap gap-1 mt-2">
+          {game.platform.map((platform) => (
+            <span
+              key={platform}
+              className="text-[10px] px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(255,255,255,0.08)", color: "var(--spwn-faint)", border: "1px solid var(--spwn-border)" }}
+            >
+              {platform}
+            </span>
+          ))}
+        </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <div className="flex items-center gap-1 px-2 py-1 rounded text-xs" style={{ background: "rgba(0,0,0,0.5)", fontWeight: 700 }}>
@@ -71,6 +101,7 @@ export function DiscoverPage() {
 
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [selectedGenre, setSelectedGenre] = useState<string>(searchParams.get("genre") ?? "");
+  const [selectedPlatform, setSelectedPlatform] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortKey>("popularity");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [showFilters, setShowFilters] = useState(false);
@@ -93,10 +124,15 @@ export function DiscoverPage() {
           g.title.toLowerCase().includes(q) ||
           g.developer.toLowerCase().includes(q) ||
           g.genres.some((gen) => gen.toLowerCase().includes(q)) ||
-          g.tags.some((t) => t.toLowerCase().includes(q))
+          g.tags.some((t) => t.toLowerCase().includes(q)) ||
+          g.platform.some((platform) => platform.toLowerCase().includes(q))
       );
     }
     if (selectedGenre) list = list.filter((g) => g.genres.includes(selectedGenre));
+    if (selectedPlatform) {
+      const platformKey = selectedPlatform.toLowerCase();
+      list = list.filter((g) => g.platform.some((platform) => platform.toLowerCase().includes(platformKey)));
+    }
     list.sort((a, b) => {
       if (sortBy === "rating") return b.rating - a.rating;
       if (sortBy === "popularity") return b.popularity - a.popularity;
@@ -115,7 +151,7 @@ export function DiscoverPage() {
     else addToBacklog(gameId, "want");
   };
 
-  const hasFilters = query || selectedGenre || sortBy !== "popularity";
+  const hasFilters = query || selectedGenre || selectedPlatform || sortBy !== "popularity";
 
   return (
     <div className="flex flex-col" style={{ background: "var(--spwn-bg)" }}>
@@ -131,7 +167,7 @@ export function DiscoverPage() {
               type="text"
               value={query}
               onChange={(e) => { setQuery(e.target.value); setPage(1); }}
-              placeholder="Search games, genres, tags…"
+              placeholder="Search games, genres, tags, platforms…"
               className="flex-1 bg-transparent text-white text-sm placeholder-white/25 outline-none"
               style={{ color: "var(--spwn-text)" }}
             />
@@ -194,6 +230,21 @@ export function DiscoverPage() {
                   style={{ background: selectedGenre === g ? "var(--spwn-accent)" : "var(--spwn-glass)", color: selectedGenre === g ? "white" : "var(--spwn-faint)", fontWeight: selectedGenre === g ? 700 : 400 }}
                 >
                   {g}
+                </button>
+              ))}
+            </div>
+
+            {/* Platform */}
+            <p className="text-white/40 text-xs mb-2 tracking-widest uppercase" style={{ fontWeight: 700 }}>Platform</p>
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {(["Android", "iOS"]).map((platform) => (
+                <button
+                  key={platform}
+                  onClick={() => { setSelectedPlatform(platform === selectedPlatform ? "" : platform); setPage(1); }}
+                  className="px-3 py-1 rounded-full text-xs transition-all"
+                  style={{ background: selectedPlatform === platform ? "var(--spwn-accent)" : "var(--spwn-glass)", color: selectedPlatform === platform ? "white" : "var(--spwn-faint)", fontWeight: selectedPlatform === platform ? 700 : 400 }}
+                >
+                  {platform}
                 </button>
               ))}
             </div>

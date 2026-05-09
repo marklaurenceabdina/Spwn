@@ -249,10 +249,12 @@ function GameEditForm({
   const [description, setDescription] = useState(game.description);
   const [longDescription, setLongDescription] = useState(game.longDescription || "");
   const [image, setImage] = useState(game.image || "");
+  const [trailerVideoId, setTrailerVideoId] = useState(game.trailerVideoId || "");
   const [tags, setTags] = useState((game.tags || []).join(", "));
   const [genresString, setGenresString] = useState((game.genres || []).join(", "));
-  const [minSpecs, setMinSpecs] = useState(game.minSpecs || { os: "", cpu: "", ram: "", gpu: "", storage: "" });
-  const [recSpecs, setRecSpecs] = useState(game.recSpecs || { os: "", cpu: "", ram: "", gpu: "", storage: "" });
+  const [platform, setPlatform] = useState(game.platform || []);
+  const [minSpecs, setMinSpecs] = useState(game.minSpecs || { os: "", cpu: "", ram: "", storage: "" });
+  const [recSpecs, setRecSpecs] = useState(game.recSpecs || { os: "", cpu: "", ram: "", storage: "" });
 
   return (
     <div className="px-3 pb-3 border-t" style={{ borderColor: "var(--spwn-border)" }}>
@@ -335,6 +337,18 @@ function GameEditForm({
         />
         <input
           type="text"
+          value={trailerVideoId}
+          onChange={(e) => setTrailerVideoId(e.target.value)}
+          className="w-full px-2 py-1 rounded text-sm outline-none"
+          style={{
+            background: "var(--spwn-input)",
+            border: "1px solid var(--spwn-border)",
+            color: "var(--spwn-text)",
+          }}
+          placeholder="Trailer Video Link"
+        />
+        <input
+          type="text"
           value={tags}
           onChange={(e) => setTags(e.target.value)}
           className="w-full px-2 py-1 rounded text-sm outline-none"
@@ -357,6 +371,37 @@ function GameEditForm({
           }}
           placeholder="Genres (comma separated)"
         />
+        <div>
+          <p style={{ color: "var(--spwn-faint)", fontSize: 12, marginBottom: 4 }}>Platforms</p>
+          <div className="flex gap-4">
+            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <input
+                type="checkbox"
+                checked={platform.includes("Android")}
+                onChange={(e) => {
+                  const newPlatform = e.target.checked
+                    ? [...platform, "Android"]
+                    : platform.filter(p => p !== "Android");
+                  setPlatform(newPlatform);
+                }}
+              />
+              <span style={{ color: "var(--spwn-text)" }}>Android</span>
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <input
+                type="checkbox"
+                checked={platform.includes("iOS")}
+                onChange={(e) => {
+                  const newPlatform = e.target.checked
+                    ? [...platform, "iOS"]
+                    : platform.filter(p => p !== "iOS");
+                  setPlatform(newPlatform);
+                }}
+              />
+              <span style={{ color: "var(--spwn-text)" }}>iOS</span>
+            </label>
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
             <p style={{ color: "var(--spwn-faint)", fontSize: 12 }}>Minimum Specs</p>
@@ -383,14 +428,6 @@ function GameEditForm({
               className="w-full px-2 py-1 rounded text-sm outline-none mt-1"
               style={{ background: "var(--spwn-input)", border: "1px solid var(--spwn-border)", color: "var(--spwn-text)" }}
               placeholder="RAM"
-            />
-            <input
-              type="text"
-              value={minSpecs.gpu}
-              onChange={(e) => setMinSpecs({ ...minSpecs, gpu: e.target.value })}
-              className="w-full px-2 py-1 rounded text-sm outline-none mt-1"
-              style={{ background: "var(--spwn-input)", border: "1px solid var(--spwn-border)", color: "var(--spwn-text)" }}
-              placeholder="GPU"
             />
             <input
               type="text"
@@ -429,14 +466,6 @@ function GameEditForm({
             />
             <input
               type="text"
-              value={recSpecs.gpu}
-              onChange={(e) => setRecSpecs({ ...recSpecs, gpu: e.target.value })}
-              className="w-full px-2 py-1 rounded text-sm outline-none mt-1"
-              style={{ background: "var(--spwn-input)", border: "1px solid var(--spwn-border)", color: "var(--spwn-text)" }}
-              placeholder="GPU"
-            />
-            <input
-              type="text"
               value={recSpecs.storage}
               onChange={(e) => setRecSpecs({ ...recSpecs, storage: e.target.value })}
               className="w-full px-2 py-1 rounded text-sm outline-none mt-1"
@@ -455,8 +484,10 @@ function GameEditForm({
                 description,
                 longDescription,
                 image,
+                trailerVideoId,
                 tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
                 genres: genresString.split(",").map((g) => g.trim()).filter(Boolean),
+                platform,
                 minSpecs,
                 recSpecs,
               });
@@ -490,7 +521,37 @@ function GameCreateForm({
   onSave: (data: Omit<Game, "id">) => void;
   onCancel: () => void;
 }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    developer: string;
+    publisher: string;
+    year: number;
+    genres: string[];
+    description: string;
+    longDescription: string;
+    image: string;
+    rating: number;
+    reviewCount: number;
+    tags: string[];
+    platform: string[];
+    minSpecs: {
+      os: string;
+      cpu: string;
+      ram: string;
+      gpu: string;
+      storage: string;
+    };
+    recSpecs: {
+      os: string;
+      cpu: string;
+      ram: string;
+      gpu: string;
+      storage: string;
+    };
+    trailerVideoId: string;
+    popularity: number;
+    featured: boolean;
+  }>({
     title: "",
     developer: "",
     publisher: "",
@@ -502,7 +563,7 @@ function GameCreateForm({
     rating: 0,
     reviewCount: 0,
     tags: [],
-    platform: ["PC"],
+    platform: [],
     minSpecs: {
       os: "",
       cpu: "",
@@ -660,6 +721,18 @@ function GameCreateForm({
           />
           <input
             type="text"
+            placeholder="Trailer Video Link"
+            value={formData.trailerVideoId}
+            onChange={(e) => setFormData({ ...formData, trailerVideoId: e.target.value })}
+            className="w-full px-3 py-2 rounded text-sm outline-none"
+            style={{
+              background: "var(--spwn-input)",
+              border: "1px solid var(--spwn-border)",
+              color: "var(--spwn-text)",
+            }}
+          />
+          <input
+            type="text"
             placeholder="Tags (comma separated)"
             value={tagsString}
             onChange={(e) => setTagsString(e.target.value)}
@@ -682,6 +755,37 @@ function GameCreateForm({
               color: "var(--spwn-text)",
             }}
           />
+          <div>
+            <p style={{ color: "var(--spwn-faint)", fontSize: 12, marginBottom: 4 }}>Platforms</p>
+            <div className="flex gap-4">
+              <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <input
+                  type="checkbox"
+                  checked={formData.platform.includes("Android")}
+                  onChange={(e) => {
+                    const newPlatform = e.target.checked
+                      ? [...formData.platform, "Android"]
+                      : formData.platform.filter(p => p !== "Android");
+                    setFormData({ ...formData, platform: newPlatform });
+                  }}
+                />
+                <span style={{ color: "var(--spwn-text)" }}>Android</span>
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <input
+                  type="checkbox"
+                  checked={formData.platform.includes("iOS")}
+                  onChange={(e) => {
+                    const newPlatform = e.target.checked
+                      ? [...formData.platform, "iOS"]
+                      : formData.platform.filter(p => p !== "iOS");
+                    setFormData({ ...formData, platform: newPlatform });
+                  }}
+                />
+                <span style={{ color: "var(--spwn-text)" }}>iOS</span>
+              </label>
+            </div>
+          </div>
           <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <input
               type="checkbox"
@@ -719,14 +823,6 @@ function GameCreateForm({
               />
               <input
                 type="text"
-                placeholder="GPU"
-                value={formData.minSpecs.gpu}
-                onChange={(e) => setFormData({ ...formData, minSpecs: { ...formData.minSpecs, gpu: e.target.value } })}
-                className="w-full px-3 py-2 rounded text-sm outline-none mt-1"
-                style={{ background: "var(--spwn-input)", border: "1px solid var(--spwn-border)", color: "var(--spwn-text)" }}
-              />
-              <input
-                type="text"
                 placeholder="Storage"
                 value={formData.minSpecs.storage}
                 onChange={(e) => setFormData({ ...formData, minSpecs: { ...formData.minSpecs, storage: e.target.value } })}
@@ -757,14 +853,6 @@ function GameCreateForm({
                 placeholder="RAM"
                 value={formData.recSpecs.ram}
                 onChange={(e) => setFormData({ ...formData, recSpecs: { ...formData.recSpecs, ram: e.target.value } })}
-                className="w-full px-3 py-2 rounded text-sm outline-none mt-1"
-                style={{ background: "var(--spwn-input)", border: "1px solid var(--spwn-border)", color: "var(--spwn-text)" }}
-              />
-              <input
-                type="text"
-                placeholder="GPU"
-                value={formData.recSpecs.gpu}
-                onChange={(e) => setFormData({ ...formData, recSpecs: { ...formData.recSpecs, gpu: e.target.value } })}
                 className="w-full px-3 py-2 rounded text-sm outline-none mt-1"
                 style={{ background: "var(--spwn-input)", border: "1px solid var(--spwn-border)", color: "var(--spwn-text)" }}
               />

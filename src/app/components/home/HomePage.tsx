@@ -31,9 +31,22 @@ export function HomePage() {
   const byPopularity = [...games].sort((a, b) => b.popularity - a.popularity);
   const byRating = [...games].sort((a, b) => b.rating - a.rating);
   const featuredGames = games.filter((g) => g.featured);
-  const featured = featuredGames[0] || byPopularity[0];
-  const trending = byPopularity.slice(0, 5);
-  const topRated = byRating.slice(0, 3);
+  const featured = featuredGames[0] || byPopularity[0] || null;
+  const trending = byPopularity?.slice(0, 5) || [];
+  const topRated = byRating?.slice(0, 3) || [];
+
+  if (!featured) {
+    return (
+      <div
+        className="flex items-center justify-center h-full"
+        style={{ background: "var(--spwn-bg)" }}
+      >
+        <p style={{ color: "var(--spwn-faint)" }}>
+          No games available.
+        </p>
+      </div>
+    );
+  }
 
   // Transform-based continuous carousel for Top Rated (GPU-accelerated)
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -90,7 +103,8 @@ export function HomePage() {
   };
 
   // Duplicate items so the scroller can loop seamlessly
-  const loopTopRated = [...topRated, ...topRated];
+  const loopTopRated =
+    topRated.length > 0 ? [...topRated, ...topRated] : [];
 
   return (
     <div className="flex flex-col" style={{ background: "var(--spwn-bg)" }}>

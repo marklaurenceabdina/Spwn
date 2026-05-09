@@ -16,8 +16,6 @@ interface StoredUser {
   passwordHash: string;
   role: "user" | "admin";
   createdAt: string;
-  twoFactorEnabled?: boolean;
-  twoFactorSecret?: string;
   profileVisibility?: "public" | "private";
   reviewPrivacy?: "public" | "private";
 }
@@ -70,11 +68,9 @@ interface AppState {
   getGameById: (gameId: string) => Game | undefined;
   // Account management
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
-  setTwoFactorEnabled: (enabled: boolean) => Promise<{ success: boolean; secret?: string; error?: string }>;
-  getUserSettings: () => { twoFactorEnabled: boolean; profileVisibility: "public" | "private"; reviewPrivacy: "public" | "private" } | null;
+  getUserSettings: () => { profileVisibility: "public" | "private"; reviewPrivacy: "public" | "private" } | null;
   setProfileVisibility: (visibility: "public" | "private") => void;
   setReviewPrivacy: (privacy: "public" | "private") => void;
-  exportUserData: () => void;
   deleteAccount: () => Promise<{ success: boolean; error?: string }>;
 }
 
@@ -327,35 +323,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /**
    * Enable/disable a simple two-factor flag and optionally return a secret when enabling.
    */
-  async function setTwoFactorEnabled(enabled: boolean): Promise<{ success: boolean; secret?: string; error?: string }> {
-    if (!user) return { success: false, error: "Not authenticated" };
-    const users = loadFromStorage<StoredUser[]>("spwn_users", []);
-    const stored = users.find((u) => u.email === user.email);
-    if (!stored) return { success: false, error: "User not found" };
-    if (enabled) {
-      // generate a simple secret (hex) for demonstration
-      const arr = new Uint8Array(10);
-      crypto.getRandomValues(arr);
-      const secret = Array.from(arr).map((b) => b.toString(16).padStart(2, "0")).join("");
-      stored.twoFactorEnabled = true;
-      stored.twoFactorSecret = secret;
-      saveToStorage("spwn_users", users);
-      return { success: true, secret };
-    } else {
-      stored.twoFactorEnabled = false;
-      delete stored.twoFactorSecret;
-      saveToStorage("spwn_users", users);
-      return { success: true };
-    }
-  }
-
   function getUserSettings() {
     if (!user) return null;
     const users = loadFromStorage<StoredUser[]>("spwn_users", []);
     const stored = users.find((u) => u.email === user.email);
     if (!stored) return null;
     return {
-      twoFactorEnabled: !!stored.twoFactorEnabled,
       profileVisibility: (stored as any).profileVisibility === "friends" ? "private" : stored.profileVisibility || "public",
       reviewPrivacy: stored.reviewPrivacy || "public",
     };
@@ -379,25 +352,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!stored) return;
     stored.reviewPrivacy = privacy;
     saveToStorage("spwn_users", users);
-  }
-
-  function exportUserData() {
-    if (!user) return;
-    const userReviews = reviews.filter((r) => r.username === user.username);
-    const data = {
-      user,
-      reviews: userReviews,
-      games,
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `spwn-data-${user.username}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
   }
 
   async function deleteAccount(): Promise<{ success: boolean; error?: string }> {
@@ -562,11 +516,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         deleteGame,
         getGameById,
         changePassword,
-        setTwoFactorEnabled,
         getUserSettings,
         setProfileVisibility,
         setReviewPrivacy,
-        exportUserData,
         deleteAccount,
       }}
     >

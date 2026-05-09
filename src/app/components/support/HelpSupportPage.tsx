@@ -30,7 +30,7 @@ const faqs: FAQItem[] = [
   },
   {
     question: "Can I download my account data?",
-    answer: "Yes! Go to Privacy & Security settings and click 'Download Your Data' to export all your account information in a portable format.",
+    answer: "This feature is not available right now. Your account activity and reviews are stored securely within the app.",
   },
   {
     question: "How often is the game database updated?",
@@ -38,7 +38,7 @@ const faqs: FAQItem[] = [
   },
   {
     question: "Is my personal information secure?",
-    answer: "We use industry-standard encryption and security practices to protect your data. Two-factor authentication is available for additional security.",
+    answer: "We use industry-standard encryption and security practices to protect your data.",
   },
   {
     question: "Can I use SPWN on desktop?",
